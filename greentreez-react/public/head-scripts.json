@@ -1,0 +1,78 @@
+[
+  {
+    "src": "/cdn/shop/t/77/assets/jquery.min.js?v=115860211936397945481767738935",
+    "module": false
+  },
+  {
+    "src": "/cdn/shop/t/77/assets/vendor.min.js?v=178485242231304422351767738935",
+    "module": false
+  },
+  {
+    "code": "\n      import { produce } from \"/cdn/shop/t/77/assets/immer.lib.js?v=92186276450340095451767738935\";\n      import { createStore } from \"/cdn/shop/t/77/assets/zustand-vanilla.lib.js?v=93085296086090749921767738935\";\n      import Cookies from \"/cdn/shop/t/77/assets/js-cookie.lib.js?v=114704338990696736151767738935\";\n\n      window.theme.lib = {\n        Cookies,\n      };\n\n      window.theme.cart = {\n        functions: {\n          produce: produce,\n          createStore: createStore,\n        },\n      };\n    ",
+    "module": true
+  },
+  {
+    "src": "/cdn/shop/t/77/assets/cart-store.js?v=169171967427512002621767738935",
+    "module": true
+  },
+  {
+    "src": "/cdn/shop/t/77/assets/quantity-input.js?v=167758851358000206601767738935",
+    "module": true
+  },
+  {
+    "src": "/cdn/shop/t/77/assets/product-form.js?v=166760770228120350161767738935",
+    "module": true
+  },
+  {
+    "src": "/cdn/shop/t/77/assets/cart-link.js?v=53834366512873149321767738935",
+    "module": true
+  },
+  {
+    "src": "/cdn/shop/t/77/assets/cart-components.js?v=110475514246128937541767738935",
+    "module": true
+  },
+  {
+    "src": "/cdn/shop/t/77/assets/lottie.lib.js?v=56436162596295492921767738935",
+    "module": false
+  },
+  {
+    "src": "/cdn/shop/t/77/assets/cart-free-shipping-bar.js?v=15473973110761128061767738935",
+    "module": true
+  },
+  {
+    "src": "/cdn/shop/t/77/assets/product-cards.js?v=77717289362563609031767738935",
+    "module": true
+  },
+  {
+    "src": "/cdn/shop/t/77/assets/theme.min.js?v=44597397037913547921767738935",
+    "module": false
+  },
+  {
+    "src": "/cdn/shop/t/77/assets/custom.js?v=57846577350830121841767738935",
+    "module": false
+  },
+  {
+    "src": "/cdn/shop/t/77/assets/swatch-colors.js?v=113331978422415583671767738935",
+    "module": false
+  },
+  {
+    "src": "/cdn/shop/t/77/assets/details-disclosure.js?v=96430930583685380661767738935",
+    "module": false
+  },
+  {
+    "src": "/cdn/shop/t/77/assets/header-details-disclosure.js?v=48862031563158802431767738935",
+    "module": false
+  },
+  {
+    "src": "/cdn/shop/t/77/assets/nested-menu.js?v=98653082698297721091767738935",
+    "module": false
+  },
+  {
+    "src": "/cdn/shop/t/77/assets/product-interactive-options.js?v=58856235664776463841767738935",
+    "module": true
+  },
+  {
+    "src": "/cdn/shop/t/77/assets/scrollreveal.min.js?v=163720458850474464051767738935",
+    "module": false
+  }
+]

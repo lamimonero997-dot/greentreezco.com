@@ -1,0 +1,83 @@
+.js-section__home-slider.gtz-hero .home-carousel-wrapper--loading--medium::before {
+  padding-bottom: 54% !important;
+}
+
+.js-section__home-slider.gtz-hero .home-carousel__bg--overlay::before,
+.js-section__home-slider.gtz-hero .home-carousel__bg::before {
+  background: linear-gradient(
+    90deg,
+    rgba(16, 18, 14, 0.78) 0%,
+    rgba(16, 18, 14, 0.42) 48%,
+    rgba(16, 18, 14, 0.12) 100%
+  ) !important;
+  opacity: 1 !important;
+}
+
+.js-section__home-slider.gtz-hero .home-carousel__item {
+  justify-content: flex-start !important;
+  align-items: flex-end !important;
+  padding: 0 0 7% 7% !important;
+  text-align: left;
+}
+
+.js-section__home-slider.gtz-hero .home-carousel__content {
+  max-width: 36rem;
+  padding: 0;
+}
+
+.js-section__home-slider.gtz-hero .gtz-hero__eyebrow {
+  margin: 0 0 0.75rem;
+  color: var(--gtz-green);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.js-section__home-slider.gtz-hero .home-carousel__title {
+  margin-bottom: 0.85rem;
+}
+
+.js-section__home-slider.gtz-hero .section__title-text {
+  color: #fff !important;
+  font-size: clamp(2.4rem, 5vw, 4.4rem) !important;
+  line-height: 1.05 !important;
+  letter-spacing: -0.03em;
+}
+
+.js-section__home-slider.gtz-hero .section__title-text::after {
+  display: none !important;
+}
+
+.js-section__home-slider.gtz-hero .home-carousel__text,
+.js-section__home-slider.gtz-hero .home-carousel__text p {
+  color: rgba(255, 255, 255, 0.9) !important;
+  max-width: 34ch;
+  font-size: 1.05rem;
+  line-height: 1.55;
+}
+
+.js-section__home-slider.gtz-hero .home-carousel__btn,
+.js-section__home-slider.gtz-promo .home-carousel__btn,
+.js-home-carousel .c-btn--primary {
+  background: var(--gtz-green) !important;
+  color: var(--gtz-ink) !important;
+  min-height: 3rem;
+  padding: 0.85rem 1.6rem !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  font-weight: 600;
+}
+
+.js-section__home-slider.gtz-hero .home-carousel__btn:hover,
+.js-section__home-slider.gtz-promo .home-carousel__btn:hover,
+.js-home-carousel .c-btn--primary:hover {
+  background: var(--gtz-green-hover) !important;
+}
+
+.js-section__home-slider.gtz-hero .home-carousel__item--right,
+.js-section__home-slider.gtz-hero .home-carousel__item--middle {
+  justify-content: flex-start !important;
+  padding-left: 6% !important;
+  text-align: left;
+}
