@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Stop-Process *)",
+      "Bash(curl -s http://localhost:5173/pages/index.json)",
+      "Bash(npm run *)",
+      "Bash(git commit -m 'Initial commit - Fixed About page navigation issue *)",
+      "Bash(rm -rf greentreez-react/.git)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\HP\\Downloads\\greentreezcompany.com\\greentreez-react\\.git"
+    ]
+  }
+}
