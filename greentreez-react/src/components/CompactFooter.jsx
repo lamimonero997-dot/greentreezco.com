@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import { useSiteContact, whatsappUrl } from '../lib/site.js';
 
+const LOGO_SRC = '/cdn/shop/files/Green_Treez_Logo_Online_3c7e5760-a12d-437c-adcf-ef85dfd7fc8e_480x480.png';
+
 const SHOP_LINKS = [
   ['Flower', '/collections/flower'],
   ['Edibles', '/collections/edibles'],
@@ -25,7 +27,7 @@ export default function CompactFooter() {
       <div className="gtz-compact-footer__inner">
         <section className="gtz-compact-footer__brand">
           <div className="gtz-compact-footer__lockup">
-            <span className="gtz-compact-footer__mark" aria-hidden="true">GT</span>
+            <img className="gtz-compact-footer__mark" src={LOGO_SRC} alt="" width="52" height="52" loading="lazy" />
             <Link to="/" className="gtz-compact-footer__logo">Green Treez</Link>
           </div>
           <p>Thoughtfully selected hemp-derived THC and CBD, with clear information from browse to checkout.</p>

@@ -2739,8 +2739,8 @@ body.template-index .gtz-home .newsletter .section__title-text::after { color: #
 .gtz-compact-footer__topline { height:5px; background:linear-gradient(90deg,#b7cd87 0%,#6d956f 48%,#d4dfaa 100%); }
 .gtz-compact-footer__inner { display:grid; grid-template-columns:1.55fr repeat(3,minmax(130px,.78fr)); gap:clamp(28px,5vw,76px); max-width:1240px; margin:0 auto; padding:clamp(52px,6vw,82px) 32px 48px; }
 .gtz-compact-footer__brand { max-width:350px; }
-.gtz-compact-footer__lockup { display:flex; align-items:center; gap:12px; margin-bottom:22px; }
-.gtz-compact-footer__mark { display:grid; width:40px; height:40px; place-items:center; border:1px solid #a9c486; border-radius:50%; color:#dce9b7; font-size:11px; font-weight:900; letter-spacing:.08em; }
+.gtz-compact-footer__lockup { display:flex; align-items:center; gap:13px; margin-bottom:22px; }
+.gtz-compact-footer__mark { display:block; flex:none; width:52px; height:52px; border:0; border-radius:0; background:none; object-fit:contain; }
 .gtz-compact-footer__logo { color:#fff; font-family:'Roboto Slab',Georgia,serif; font-size:clamp(1.75rem,2.3vw,2.2rem); font-weight:800; letter-spacing:-.065em; line-height:1; text-decoration:none; }
 .gtz-compact-footer__brand p { margin:0 0 24px; color:#bdd0c0; font-size:.98rem; line-height:1.7; }
 .gtz-compact-footer__newsletter { display:inline-flex; align-items:center; gap:15px; padding:11px 0; border-bottom:1px solid #91ac7b; color:#fff; font-size:.86rem; font-weight:800; letter-spacing:.055em; text-decoration:none; text-transform:uppercase; }
@@ -2764,7 +2764,6 @@ body.template-index .gtz-home .newsletter .section__title-text::after { color: #
 .gtz-compact-footer__assurances,
 .gtz-compact-footer__bottom { color:#fff; }
 .gtz-compact-footer nav h2,
-.gtz-compact-footer__mark,
 .gtz-compact-footer__assurances b { color:#fff; }
 .gtz-compact-footer nav a { opacity:1; }
 
@@ -2784,7 +2783,7 @@ body:not(.gtz-admin-page) .gtz-store-chrome--footer .gtz-compact-footer__inner {
 body:not(.gtz-admin-page) .gtz-store-chrome--footer .gtz-compact-footer__brand { max-width:330px; }
 body:not(.gtz-admin-page) .gtz-store-chrome--footer .gtz-compact-footer__lockup { gap:11px; margin-bottom:18px; }
 body:not(.gtz-admin-page) .gtz-store-chrome--footer .gtz-compact-footer__mark {
-  width:42px; height:42px; border-color:#6e956d; background:#173a32 !important; color:#fff !important;
+  width:56px; height:56px; border:0 !important; border-radius:0 !important; background:none !important;
 }
 body:not(.gtz-admin-page) .gtz-store-chrome--footer .gtz-compact-footer__logo {
   display:block !important; color:#173a32 !important; font-size:2rem; font-weight:900; opacity:1 !important; visibility:visible !important;
