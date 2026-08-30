@@ -11,6 +11,7 @@ import AdminProductEditor from './pages/admin/ProductEditor.jsx';
 import AdminProducts from './pages/admin/ProductsHome.jsx';
 import AdminSettings from './pages/admin/SettingsPage.jsx';
 import CheckoutPage from './pages/CheckoutPage.jsx';
+import ContactPage from './pages/ContactPage.jsx';
 import StorePage from './pages/StorePage.jsx';
 import SpecialDealsPage from './pages/SpecialDealsPage.jsx';
 
@@ -33,6 +34,8 @@ export default function App() {
         </Route>
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/cart" element={<Navigate to="/checkout" replace />} />
+        <Route path="/pages/contact-us" element={<ContactPage />} />
+        <Route path="/pages/contact" element={<Navigate to="/pages/contact-us" replace />} />
         <Route path="/pages/daily-deals" element={<SpecialDealsPage />} />
         <Route path="/pages/store-offers-discounts" element={<SpecialDealsPage />} />
         <Route path="*" element={<StorePage />} />

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Navigate, useLocation } from 'react-router-dom';
 import NotFound from '../components/NotFound.jsx';
 import { injectCatalogIntoCollection } from '../lib/catalog/inject.js';
@@ -10,6 +11,7 @@ import { reinitTheme } from '../lib/theme.js';
 import { enableNavbarHover } from '../lib/navbarHover.js';
 import DynamicCollection from './DynamicCollection.jsx';
 import DynamicProduct from './DynamicProduct.jsx';
+import StoreMap from '../components/StoreMap.jsx';
 import StoreShell from '../components/StoreShell.jsx';
 
 function applyBodyAttrs(attrs) {
@@ -49,6 +51,7 @@ export default function StorePage() {
   const [catalogCollection, setCatalogCollection] = useState(null);
   const [catalog, setCatalog] = useState(null);
   const [loadingPage, setLoadingPage] = useState(false);
+  const [mapMount, setMapMount] = useState(null);
   const locationPage = isLocationRoute(pathname);
   const productPath = canonicalProductPath(pathname);
   const route = pathname.replace(/\/+$/, '') || '/';
@@ -63,6 +66,7 @@ export default function StorePage() {
     setCatalogCollection(null);
     setCatalogProduct(null);
     setLoadingPage(true);
+    setMapMount(null);
     if (containerRef.current) containerRef.current.innerHTML = '';
 
     const collectionHandle = route.match(/^\/collections\/([^/]+)$/)?.[1];
@@ -88,6 +92,15 @@ export default function StorePage() {
         // Enable navbar hover for home page
         if (route === '/') {
           enableNavbarHover();
+          // The store map belongs directly above the blog roll on the home page.
+          // Insert a mount node into the cloned markup and portal React into it.
+          const blog = containerRef.current.querySelector('.js-section__home-blog');
+          if (blog) {
+            const mount = document.createElement('div');
+            mount.className = 'gtz-map-mount';
+            blog.parentNode.insertBefore(mount, blog);
+            setMapMount(mount);
+          }
         }
       } catch (error) {
         console.error('Failed to render page', pathname, error);
@@ -195,9 +208,8 @@ export default function StorePage() {
   return (
     <StoreShell>
       {loadingPage ? <div className="gtz-page-loading">Loading…</div> : null}
-      <div
-        ref={containerRef}
-      />
+      <div ref={containerRef} />
+      {mapMount ? createPortal(<StoreMap />, mapMount) : null}
     </StoreShell>
   );
 }

@@ -432,14 +432,19 @@ function tidyFooter(root) {
   const grid = document.createElement('div');
   grid.className = 'gtz-footer__grid';
 
+  const { phoneDisplay, telHref, mapUrl, addressLines, storeName } = siteContact();
+
   const brand = document.createElement('div');
   brand.className = 'gtz-footer__col gtz-footer__brand';
   brand.innerHTML = `
-    <h3 class="footer-nav__title h5">Green Treez Company</h3>
+    <h3 class="footer-nav__title h5">${storeName}</h3>
     <p class="gtz-footer__blurb">Legal THC and CBD products, shipped to your door. Must be 21 or older to purchase.</p>
     <ul class="gtz-footer__contact o-list-bare">
-      <li><a href="${DEMO_TEL}">${DEMO_PHONE}</a></li>
+      <li><a href="${telHref}">${phoneDisplay}</a></li>
       <li><a href="mailto:${DEMO_EMAIL}">${DEMO_EMAIL}</a></li>
+      <li><a class="gtz-footer__address" href="${mapUrl}" target="_blank" rel="noreferrer">${addressLines
+        .map((line) => `<span>${line}</span>`)
+        .join('')}</a></li>
     </ul>
   `;
   if (social) brand.append(social);
