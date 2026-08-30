@@ -3292,3 +3292,15 @@ body.gtz-checkout-page { --gtz-co-forest:#153a32; --gtz-co-deep:#102f29; --gtz-c
   .gtz-whatsapp-fab { right:14px; bottom:14px; padding:12px; }
   .gtz-whatsapp-fab span { display:none; }
 }
+
+/* Payment brand marks on the checkout payment picker */
+.gtz-checkout__options--payment { grid-template-columns:repeat(auto-fit,minmax(258px,1fr)); }
+.gtz-checkout__options--payment .gtz-option { align-items:flex-start; padding:15px 16px; }
+.gtz-checkout__options--payment .gtz-option input { margin-top:2px; }
+.gtz-option__marks { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+.gtz-option__marks svg { display:block; flex:none; border-radius:4px; box-shadow:0 1px 2px rgba(20,37,31,.09); }
+.gtz-option.is-selected .gtz-option__marks svg { box-shadow:0 1px 3px rgba(20,37,31,.16); }
+
+@media (max-width: 720px) {
+  .gtz-checkout__options--payment { grid-template-columns:1fr; }
+}

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import PaymentMarkRow from '../components/PaymentMarks.jsx';
 import StoreShell from '../components/StoreShell.jsx';
 import { clearLocalCart, localCartTotal, readLocalCart, updateLocalCartItem } from '../lib/catalog/cart.js';
 import { formatMoney } from '../lib/catalog/model.js';
@@ -7,13 +8,13 @@ import { createOrder, newOrderReference } from '../lib/catalog/orders.js';
 import { useSiteContact, whatsappUrl } from '../lib/site.js';
 
 const PAYMENT_METHODS = [
-  { id: 'card', label: 'Credit / debit card', note: 'Secure payment link sent on WhatsApp', glyph: 'CARD' },
-  { id: 'cashapp', label: 'Cash App', note: 'Pay to our verified $cashtag', glyph: '$' },
-  { id: 'zelle', label: 'Zelle', note: 'Bank to bank, no fees', glyph: 'Z' },
-  { id: 'venmo', label: 'Venmo', note: 'Fast peer-to-peer transfer', glyph: 'V' },
-  { id: 'wallet', label: 'Apple Pay / Google Pay', note: 'One tap from your wallet', glyph: 'PAY' },
-  { id: 'crypto', label: 'Bitcoin / USDT', note: 'On-chain, address sent on request', glyph: 'BTC' },
-  { id: 'cash', label: 'Cash on delivery or pickup', note: 'Pay when you receive your order', glyph: 'CASH' },
+  { id: 'card', label: 'Credit / debit card', note: 'Visa, Mastercard, Amex. Secure link sent on WhatsApp' },
+  { id: 'cashapp', label: 'Cash App', note: 'Pay to our verified $cashtag' },
+  { id: 'zelle', label: 'Zelle', note: 'Bank to bank, no fees' },
+  { id: 'venmo', label: 'Venmo', note: 'Fast peer-to-peer transfer' },
+  { id: 'wallet', label: 'Apple Pay / Google Pay', note: 'One tap from your wallet' },
+  { id: 'crypto', label: 'Bitcoin / USDT', note: 'On-chain, address sent on request' },
+  { id: 'cash', label: 'Cash on delivery or pickup', note: 'Pay when you receive your order' },
 ];
 
 function deliveryMethods(addressOneLine) {
@@ -361,12 +362,10 @@ export default function CheckoutPage() {
                       checked={paymentId === method.id}
                       onChange={() => setPaymentId(method.id)}
                     />
-                    <span className="gtz-option__glyph" aria-hidden="true">
-                      {method.glyph}
-                    </span>
                     <span className="gtz-option__body">
                       <span className="gtz-option__label">{method.label}</span>
                       <span className="gtz-option__note">{method.note}</span>
+                      <PaymentMarkRow methodId={method.id} />
                     </span>
                   </label>
                 ))}
