@@ -17,7 +17,7 @@ import SpecialDealsPage from './pages/SpecialDealsPage.jsx';
 export default function App() {
   const { pathname } = useLocation();
   const isAdmin = pathname.startsWith('/admin');
-  useStoreNavigation();
+  useStoreNavigation(!isAdmin);
 
   return (
     <>

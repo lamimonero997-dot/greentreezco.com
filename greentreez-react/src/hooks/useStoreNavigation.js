@@ -3,10 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { addFromProductForm, isCartTrigger, isProductAddForm } from '../lib/catalog/cloneProduct.js';
 import { canonicalProductPath, isLocationRoute } from '../lib/sanitize.js';
 
-export function useStoreNavigation() {
+/**
+ * Intercepts clicks inside imported storefront markup so plain anchors navigate
+ * through the router. Pass enabled=false on routes that render their own React
+ * UI (the admin), where hijacking links does real damage: canonicalProductPath
+ * rewrites /admin/products/new to /products/new and lands on a 404.
+ */
+export function useStoreNavigation(enabled = true) {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!enabled) return undefined;
+
     const onClick = (event) => {
       if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
         return;
@@ -26,6 +34,8 @@ export function useStoreNavigation() {
 
       const href = link.getAttribute('href');
       if (!href || !href.startsWith('/') || href.startsWith('//')) return;
+      // Admin routes are ordinary React Router links; leave them alone.
+      if (href === '/admin' || href.startsWith('/admin/')) return;
       if (link.target && link.target !== '_self') return;
       if (link.hasAttribute('download')) return;
       if (isLocationRoute(href.split('#')[0])) {
@@ -58,6 +68,7 @@ export function useStoreNavigation() {
 
       const action = form.getAttribute('action') || '';
       if (!action.startsWith('/') || action.startsWith('//')) return;
+      if (action === '/admin' || action.startsWith('/admin/')) return;
       if (/^\/(checkout|checkouts|account|apps|cart\/add)\b/.test(action)) return;
 
       event.preventDefault();
@@ -71,5 +82,5 @@ export function useStoreNavigation() {
       document.removeEventListener('click', onClick, true);
       document.removeEventListener('submit', onSubmit, true);
     };
-  }, [navigate]);
+  }, [navigate, enabled]);
 }
