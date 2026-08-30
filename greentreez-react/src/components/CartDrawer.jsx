@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { localCartCount, localCartTotal, readLocalCart, updateLocalCartItem } from '../lib/catalog/cart.js';
 import { formatMoney } from '../lib/catalog/model.js';
 
 export default function CartDrawer() {
+  const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
   const [cart, setCart] = useState(() => readLocalCart());
 
@@ -22,6 +24,10 @@ export default function CartDrawer() {
   const count = useMemo(() => localCartCount(), [cart]);
   const total = useMemo(() => localCartTotal(), [cart]);
 
+  // The checkout page already shows the full cart, so the drawer would only duplicate it.
+  const onCheckout = pathname.replace(/\/+$/, '') === '/checkout';
+
+  if (onCheckout) return null;
   if (!count && !open) return null;
 
   return (
@@ -66,9 +72,14 @@ export default function CartDrawer() {
             <footer>
               <p>Subtotal {formatMoney(total)}</p>
               <p className="gtz-cart-drawer__note">Taxes and shipping are calculated at checkout.</p>
-              <a className="gtz-cart-drawer__checkout" href="/cart">
+              <Link
+                className="gtz-cart-drawer__checkout"
+                to="/checkout"
+                onClick={() => setOpen(false)}
+                aria-disabled={!cart.items.length}
+              >
                 Continue to secure checkout
-              </a>
+              </Link>
             </footer>
           </aside>
         </div>

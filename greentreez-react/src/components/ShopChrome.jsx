@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useSiteContact, whatsappUrl } from '../lib/site.js';
 
 const NAV_ITEMS = [
   {
@@ -84,6 +85,8 @@ function NavItem({ item }) {
 }
 
 export default function ShopChrome({ children }) {
+  const contact = useSiteContact();
+
   return (
     <div className="gtz-chrome">
       <header className="gtz-chrome__header">
@@ -108,10 +111,22 @@ export default function ShopChrome({ children }) {
               <p className="gtz-footer__blurb">Legal THC and CBD products, shipped to your door. Must be 21 or older to purchase.</p>
               <ul className="gtz-footer__contact o-list-bare">
                 <li>
-                  <a href="tel:+15550100000">(555) 010-0000</a>
+                  <a href={contact.telHref}>{contact.phoneDisplay}</a>
                 </li>
                 <li>
-                  <a href="mailto:hello@example.com">hello@example.com</a>
+                  <a href={whatsappUrl(contact.whatsappGreeting)} target="_blank" rel="noreferrer">
+                    Chat on WhatsApp
+                  </a>
+                </li>
+                <li>
+                  <a href={contact.mailtoHref}>{contact.email}</a>
+                </li>
+                <li>
+                  <a className="gtz-footer__address" href={contact.mapUrl} target="_blank" rel="noreferrer">
+                    {contact.addressLines.map((line) => (
+                      <span key={line}>{line}</span>
+                    ))}
+                  </a>
                 </li>
               </ul>
             </div>

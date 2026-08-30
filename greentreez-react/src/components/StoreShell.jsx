@@ -4,6 +4,7 @@ import { localCartCount } from '../lib/catalog/cart.js';
 import { getStoreChrome } from '../lib/chrome.js';
 import { reinitTheme } from '../lib/theme.js';
 import { enableNavbarHover } from '../lib/navbarHover.js';
+import { useSiteContact } from '../lib/site.js';
 import ShopChrome from './ShopChrome.jsx';
 import CompactFooter from './CompactFooter.jsx';
 
@@ -58,6 +59,7 @@ function bindHeaderCart(root) {
 }
 
 export default function StoreShell({ children }) {
+  const contact = useSiteContact();
   const headerRef = useRef(null);
   const footerRef = useRef(null);
   const [failed, setFailed] = useState(false);
@@ -96,8 +98,16 @@ export default function StoreShell({ children }) {
   return (
     <>
       <div className="gtz-shipping-bar">
-        <span>Free Shipping into TN! Shop Broad Spectrum</span>
-        <Link to="/collections/free-shipping-to-tennessee">View Selection</Link>
+        <span>{contact.announcementText}</span>
+        {contact.announcementLinkLabel ? (
+          <Link to={contact.announcementLinkHref || '/'}>{contact.announcementLinkLabel}</Link>
+        ) : null}
+        <span className="gtz-shipping-bar__contact">
+          <a href={contact.telHref}>{contact.phoneDisplay}</a>
+          <a href={contact.mapUrl} target="_blank" rel="noreferrer">
+            {contact.addressOneLine}
+          </a>
+        </span>
       </div>
       <div ref={headerRef} className="gtz-store-chrome gtz-store-chrome--header" />
       {children}

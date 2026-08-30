@@ -97,6 +97,35 @@ export function newProduct(partial = {}) {
   };
 }
 
+/**
+ * Copies a listing into a fresh draft. newProduct() spreads its argument last, so
+ * the source id, timestamps, and status are stripped here rather than passed in
+ * as undefined, which would otherwise survive the spread and clobber the new id.
+ */
+export function duplicateProduct(product, takenHandles = new Set()) {
+  const { id: _id, created_at: _created, updated_at: _updated, ...rest } = product;
+  let handle = slugify(`${product.handle}-copy`);
+  let counter = 2;
+  while (takenHandles.has(handle)) {
+    handle = slugify(`${product.handle}-copy-${counter}`);
+    counter += 1;
+  }
+  const copy = newProduct({
+    ...rest,
+    handle,
+    title: `${product.title} (copy)`,
+    status: 'draft',
+    featured: false,
+  });
+  return {
+    ...copy,
+    variants: (product.variants || []).map((variant, index) => ({
+      ...variant,
+      id: `${copy.id}-${index + 1}`,
+    })),
+  };
+}
+
 export function toShopifyProduct(product) {
   const variants = (product.variants || []).map((variant) => ({
     id: numericId(variant.id),

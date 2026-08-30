@@ -232,6 +232,38 @@ export async function saveCollection(collection) {
   return next;
 }
 
+export async function deleteCollection(id) {
+  if (supabaseConfigured()) {
+    const supabase = getSupabase();
+    const { error } = await supabase.from('collections').delete().eq('id', id);
+    if (error) throw error;
+    await loadCatalog(true);
+    return;
+  }
+  deleteOverride('collections', id);
+  const seed = await loadSeed();
+  cache = { ...applyOverrides(seed, readOverrides()), source: 'local' };
+  notify();
+}
+
+// Bulk helpers write sequentially so one failure does not leave half the batch in
+// an unknown state, then refresh the catalog once at the end.
+export async function saveProducts(products) {
+  const results = [];
+  for (const product of products) {
+    results.push(await saveProduct(product));
+  }
+  await loadCatalog(true);
+  return results;
+}
+
+export async function deleteProducts(ids) {
+  for (const id of ids) {
+    await deleteProduct(id);
+  }
+  await loadCatalog(true);
+}
+
 export function productsForCollection(catalog, handle) {
   return (catalog?.products || []).filter(
     (product) => product.status === 'active' && (product.collection_handles || []).includes(handle)

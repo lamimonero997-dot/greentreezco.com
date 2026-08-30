@@ -1,3 +1,5 @@
+import { siteContact } from './site.js';
+
 const DROP_SRC = [
   'googletagmanager',
   'google-analytics',
@@ -85,8 +87,9 @@ const LOCATION_PATHS = new Set([
 
 const LOCATION_NAV_LABELS = new Set(['shop by location', 'locations', 'store locator']);
 
-const DEMO_PHONE = '(555) 010-0000';
-const DEMO_TEL = 'tel:+15550100000';
+// Cloned pages carry the original storefront's contact details; rewrite every one
+// of them to whatever the shop owner has saved so the site never shows a stale
+// number. Read at call time, not module load, so admin edits take effect.
 const DEMO_EMAIL = 'hello@example.com';
 const PHONE_RE = /\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}/g;
 const ORIGINAL_HOST_RE = /^https?:\/\/(?:www\.)?greentreezcompany\.com/i;
@@ -168,6 +171,7 @@ export function sanitizePageMeta(page) {
 
 export function sanitizeHtml(html) {
   if (!html) return html;
+  const { phoneDisplay: DEMO_PHONE, telHref: DEMO_TEL, mapUrl: SITE_MAP_URL } = siteContact();
 
   let out = html
     .replace(/<!--\s*BEGIN app block:[\s\S]*?<!--\s*END app block\s*-->/gi, '')
@@ -202,7 +206,7 @@ export function sanitizeHtml(html) {
         )
         .replace(
           /href=(["'])https?:\/\/(?:maps\.google|www\.google\.com\/maps|maps\.app\.goo\.gl)[^"']*\1/gi,
-          'href=$1#$1'
+          `href=$1${SITE_MAP_URL}$1`
         );
     })
     .join('');
@@ -274,6 +278,7 @@ function stripLocationSections(root) {
 }
 
 function rewriteContactAndOutboundLinks(root) {
+  const { phoneDisplay: DEMO_PHONE, telHref: DEMO_TEL, mapUrl: SITE_MAP_URL } = siteContact();
   root.querySelectorAll('a[href]').forEach((link) => {
     const href = link.getAttribute('href') || '';
     const isSocial =
@@ -309,7 +314,14 @@ function rewriteContactAndOutboundLinks(root) {
       return;
     }
 
-    if (MAP_HOST_RE.test(href) || isSocial) {
+    if (MAP_HOST_RE.test(href)) {
+      link.setAttribute('href', SITE_MAP_URL);
+      link.setAttribute('target', '_blank');
+      link.setAttribute('rel', 'noreferrer');
+      return;
+    }
+
+    if (isSocial) {
       link.setAttribute('href', '#');
       link.removeAttribute('target');
       return;
