@@ -152,7 +152,6 @@ function PasswordLogin({ onOk }) {
         </label>
         {error ? <p className="gtz-error">{error}</p> : null}
         <button type="submit">Continue</button>
-        <p className="gtz-admin__muted">Set your own password with VITE_ADMIN_PASSWORD.</p>
       </form>
     </div>
   );

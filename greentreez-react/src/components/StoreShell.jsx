@@ -45,6 +45,18 @@ function syncHeaderCartCount(root) {
   });
 }
 
+/**
+ * The cloned header only shows a cart icon at desktop widths - the mobile one
+ * ships with an inline `display: none` that the original theme script toggled.
+ * Without that icon a phone has no way back to the cart, so flag it on <body>
+ * and let the floating cart button take over.
+ */
+function syncCartAffordance(root) {
+  const triggers = root ? [...root.querySelectorAll('.js-cart-trigger, .js-cart-icon')] : [];
+  const reachable = triggers.some((el) => el.getClientRects().length > 0);
+  document.body.classList.toggle('gtz-no-header-cart', !reachable);
+}
+
 function bindHeaderCart(root) {
   if (!root) return undefined;
   const onClick = (event) => {
@@ -74,6 +86,7 @@ export default function StoreShell({ children }) {
         simplifyMoreMenu(headerRef.current);
         simplifyAnnouncement(headerRef.current);
         syncHeaderCartCount(headerRef.current);
+        syncCartAffordance(headerRef.current);
         unbind = bindHeaderCart(headerRef.current);
         reinitTheme();
         // Enable navbar hover for desktop
@@ -84,12 +97,16 @@ export default function StoreShell({ children }) {
       });
 
     const onCart = () => syncHeaderCartCount(headerRef.current);
+    const onResize = () => syncCartAffordance(headerRef.current);
     window.addEventListener('gtz-cart-change', onCart);
+    window.addEventListener('resize', onResize);
 
     return () => {
       cancelled = true;
       unbind?.();
       window.removeEventListener('gtz-cart-change', onCart);
+      window.removeEventListener('resize', onResize);
+      document.body.classList.remove('gtz-no-header-cart');
     };
   }, []);
 

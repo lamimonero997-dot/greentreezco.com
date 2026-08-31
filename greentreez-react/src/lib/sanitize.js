@@ -65,6 +65,10 @@ const DROP_SELECTORS = [
   '.yotpo-widget-loyalty-floater-widget',
   '.yotpo-floater-widget-layout',
   '.js-section__apps',
+  // The theme ships its own 21+ popup. AgeGate replaces it, and leaving the
+  // clone in place stacks a second modal on top that swallows every click.
+  '.js-section__age-checker',
+  '.age-checker',
   '.js-section__home-map',
   '[data-section-type="home-map"]',
 ];

@@ -32,9 +32,11 @@ export default function CartDrawer() {
 
   return (
     <>
-      <button type="button" className="gtz-cart-fab" onClick={() => setOpen(true)} aria-label="Open cart">
-        Cart {count}
-      </button>
+      {open ? null : (
+        <button type="button" className="gtz-cart-fab" onClick={() => setOpen(true)} aria-label="Open cart">
+          Cart {count}
+        </button>
+      )}
       {open ? (
         <div className="gtz-cart-drawer">
           <button type="button" className="gtz-cart-drawer__scrim" onClick={() => setOpen(false)} aria-label="Close cart" />

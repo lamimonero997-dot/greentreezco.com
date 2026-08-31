@@ -2168,7 +2168,7 @@ body.gtz-dynamic-collection .collection__header-info__title {
   inset: 0;
   background: rgba(0, 0, 0, 0.35);
   border: 0;
-  z-index: 50;
+  z-index: 960;
   animation: fadeIn 0.3s ease;
 }
 
@@ -2189,7 +2189,7 @@ body.gtz-dynamic-collection .collection__header-info__title {
   width: min(420px, 100%);
   height: 100%;
   background: #fff;
-  z-index: 51;
+  z-index: 961;
   padding: 1.25rem;
   overflow: auto;
   display: flex;
@@ -2579,6 +2579,18 @@ body.template-index .gtz-cart-fab,
 body.template-product .gtz-cart-fab,
 body.template-collection .gtz-cart-fab {
   display: none;
+}
+
+/* StoreShell sets this when the cloned header's cart icon is not on screen -
+   below the theme's tablet breakpoint it never is, and the floating button is
+   then the customer's only way back to the cart. It clears the WhatsApp bubble
+   so the two do not sit on top of each other. */
+body.gtz-no-header-cart .gtz-cart-fab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  bottom: 5.5rem;
+  z-index: 950;
 }
 
 .gtz-gallery .media-gallery__wrapper {

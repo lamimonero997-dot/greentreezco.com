@@ -14,6 +14,9 @@ export default function ProductCard({ product }) {
     if (!variant) return;
     addLocalCartItem({ product, variant });
     setAdded(true);
+    // Same feedback as the product page: on a phone the drawer is the only
+    // thing that confirms the add and the only route to checkout.
+    window.dispatchEvent(new CustomEvent('gtz-open-cart'));
     window.setTimeout(() => setAdded(false), 1800);
   }
 
