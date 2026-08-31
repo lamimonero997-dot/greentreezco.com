@@ -1,30 +1,67 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { catalogSource, listProducts } from '../../lib/catalog/store.js';
+import { catalogSource, listProducts, loadCatalog } from '../../lib/catalog/store.js';
+import {
+  authMode,
+  checkIsAdmin,
+  getSession,
+  hasLocalSession,
+  onAuthChange,
+  sendPasswordReset,
+  signIn,
+  signInLocal,
+  signOut,
+} from '../../lib/adminAuth.js';
 import { listOrders, subscribeOrders } from '../../lib/catalog/orders.js';
 import { useSiteSettings } from '../../lib/settings.js';
 import { Icon, ICONS, ToastStack, useToasts } from './ui.jsx';
 import './admin.css';
 
-const SESSION_KEY = 'gtz-admin-session';
 const LOGO_SRC = '/cdn/shop/files/Green_Treez_Logo_Online_49d74201-94de-44f4-984a-9f299aedc9ad.png';
 
-function expectedPassword() {
-  return import.meta.env.VITE_ADMIN_PASSWORD || 'greentreez';
-}
-
-function Login({ onOk }) {
+/** Email + password against Supabase Auth; membership of public.admins decides access. */
+function SupabaseLogin({ onSignedIn }) {
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+  const [busy, setBusy] = useState(false);
 
-  function submit(event) {
+  async function submit(event) {
     event.preventDefault();
-    if (password !== expectedPassword()) {
-      setError('That password does not match.');
+    if (busy) return;
+    setBusy(true);
+    setError('');
+    setNotice('');
+    try {
+      await signIn(email, password);
+      if (!(await checkIsAdmin())) {
+        await signOut();
+        setError('That account is not an admin for this shop.');
+        return;
+      }
+      // The catalog may have been cached before sign-in, when RLS hid drafts.
+      await loadCatalog(true);
+      onSignedIn();
+    } catch (signInError) {
+      setError(signInError.message || 'Could not sign in.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function reset() {
+    if (!email.trim()) {
+      setError('Enter your email address first.');
       return;
     }
-    sessionStorage.setItem(SESSION_KEY, '1');
-    onOk();
+    try {
+      await sendPasswordReset(email);
+      setNotice('Check your inbox for a reset link.');
+      setError('');
+    } catch (resetError) {
+      setError(resetError.message || 'Could not send a reset email.');
+    }
   }
 
   return (
@@ -37,6 +74,69 @@ function Login({ onOk }) {
         <h1>Sign in to manage the shop</h1>
         <p className="gtz-admin__muted">
           Products, inventory, orders, collections, and storefront settings. Changes publish to the live shop.
+        </p>
+        <label className="gtz-field">
+          <span>Email</span>
+          <input
+            type="email"
+            autoComplete="username"
+            value={email}
+            onChange={(event) => {
+              setEmail(event.target.value);
+              setError('');
+            }}
+            autoFocus
+          />
+        </label>
+        <label className="gtz-field">
+          <span>Password</span>
+          <input
+            type="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(event) => {
+              setPassword(event.target.value);
+              setError('');
+            }}
+          />
+        </label>
+        {error ? <p className="gtz-error">{error}</p> : null}
+        {notice ? <p className="gtz-admin__banner is-ok">{notice}</p> : null}
+        <button type="submit" disabled={busy}>
+          {busy ? 'Signing in…' : 'Sign in'}
+        </button>
+        <button type="button" className="gtz-linkish gtz-admin__reset" onClick={reset}>
+          Forgot your password?
+        </button>
+      </form>
+    </div>
+  );
+}
+
+/** Fallback for local development, where the catalog lives only in this browser. */
+function PasswordLogin({ onOk }) {
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  function submit(event) {
+    event.preventDefault();
+    if (!signInLocal(password)) {
+      setError('That password does not match.');
+      return;
+    }
+    onOk();
+  }
+
+  return (
+    <div className="gtz-admin-login">
+      <form onSubmit={submit}>
+        <Link className="gtz-admin__logo" to="/admin">
+          <img src={LOGO_SRC} alt="Green Treez" />
+          <span>Admin</span>
+        </Link>
+        <h1>Sign in to manage the shop</h1>
+        <p className="gtz-admin__muted">
+          This browser is running without Supabase, so the catalog is local to it and a password is enough.
         </p>
         <label className="gtz-field">
           <span>Password</span>
@@ -237,9 +337,12 @@ function Layout({ onLogout, newOrders, children }) {
 }
 
 export default function AdminApp() {
-  const [ready, setReady] = useState(() => sessionStorage.getItem(SESSION_KEY) === '1');
+  // 'checking' until we know whether there is a valid session, so a reload never
+  // flashes the login form at an already-signed-in admin.
+  const [gate, setGate] = useState('checking');
   const [newOrders, setNewOrders] = useState(0);
   const { toasts, push, dismiss } = useToasts();
+  const remote = authMode() === 'supabase';
 
   const notify = useCallback((message, tone) => push(message, tone), [push]);
 
@@ -252,24 +355,67 @@ export default function AdminApp() {
   }, []);
 
   useEffect(() => {
-    if (!ready) return undefined;
+    let cancelled = false;
+
+    async function resolveGate() {
+      if (!remote) {
+        if (!cancelled) setGate(hasLocalSession() ? 'ready' : 'signed-out');
+        return;
+      }
+      const session = await getSession();
+      if (cancelled) return;
+      if (!session) {
+        setGate('signed-out');
+        return;
+      }
+      const admin = await checkIsAdmin();
+      if (cancelled) return;
+      setGate(admin ? 'ready' : 'signed-out');
+    }
+
+    resolveGate();
+    // A token refresh failure or a sign-out in another tab must close this one.
+    const stop = onAuthChange((event) => {
+      if (event === 'SIGNED_OUT') setGate('signed-out');
+    });
+    return () => {
+      cancelled = true;
+      stop();
+    };
+  }, [remote]);
+
+  useEffect(() => {
+    if (gate !== 'ready') return undefined;
     const refresh = () =>
       listOrders().then((orders) => setNewOrders(orders.filter((order) => order.status === 'new').length));
     refresh();
     return subscribeOrders(refresh);
-  }, [ready]);
+  }, [gate]);
 
-  if (!ready) return <Login onOk={() => setReady(true)} />;
+  async function logout() {
+    await signOut();
+    setGate('signed-out');
+  }
+
+  if (gate === 'checking') {
+    return (
+      <div className="gtz-admin-login">
+        <p className="gtz-loading">Checking your session…</p>
+      </div>
+    );
+  }
+
+  if (gate === 'signed-out') {
+    return remote ? (
+      <SupabaseLogin onSignedIn={() => setGate('ready')} />
+    ) : (
+      <PasswordLogin onOk={() => setGate('ready')} />
+    );
+  }
 
   return (
     <>
-      <Layout
-        newOrders={newOrders}
-        onLogout={() => {
-          sessionStorage.removeItem(SESSION_KEY);
-          setReady(false);
-        }}
-      >
+      <Layout newOrders={newOrders} onLogout={logout}>
         <Outlet context={{ notify }} />
       </Layout>
       <ToastStack toasts={toasts} onDismiss={dismiss} />

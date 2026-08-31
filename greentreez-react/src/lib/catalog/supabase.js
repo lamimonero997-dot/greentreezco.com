@@ -10,7 +10,9 @@ export function getSupabase() {
   if (!supabaseConfigured()) return null;
   if (!client) {
     client = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY, {
-      auth: { persistSession: false, autoRefreshToken: false },
+      // The admin signs in with Supabase Auth, so the session has to survive a
+      // reload and refresh itself; RLS reads the JWT this client carries.
+      auth: { persistSession: true, autoRefreshToken: true },
     });
   }
   return client;

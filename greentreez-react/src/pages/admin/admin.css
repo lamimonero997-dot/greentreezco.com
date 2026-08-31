@@ -1536,3 +1536,16 @@ body.gtz-admin-page .gtz-admin-login {
   .gtz-bulkbar { flex-direction: column; align-items: stretch; gap: 0.6rem; }
   .gtz-bulkbar .gtz-admin__actions { flex-wrap: wrap; }
 }
+
+/* Supabase Auth login extras */
+.gtz-admin__reset {
+  display: block;
+  width: 100%;
+  margin-top: 0.85rem;
+  color: var(--admin-muted, #6b7280);
+  font-size: 0.8rem;
+  text-align: center;
+}
+.gtz-admin__reset:hover { color: #1a1d23; }
+.gtz-admin-login .gtz-admin__banner { margin-top: 0.75rem; }
+.gtz-admin-login .gtz-loading { padding: 2rem; text-align: center; }

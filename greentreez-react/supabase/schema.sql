@@ -105,6 +105,39 @@ create trigger orders_updated_at
 before update on public.orders
 for each row execute function gtz_set_updated_at();
 
+-- ---------------------------------------------------------------------------
+-- Admin identity
+--
+-- The anon key ships inside the storefront bundle, so it can never be what
+-- authorises a write. Writes require a signed-in Supabase Auth user whose id is
+-- listed in public.admins. Promote an account with:
+--   insert into public.admins (user_id, email)
+--   select id, email from auth.users where email = 'you@yourdomain.com'
+--   on conflict (user_id) do nothing;
+-- ---------------------------------------------------------------------------
+
+create table if not exists public.admins (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  email text,
+  created_at timestamptz not null default now()
+);
+
+-- SECURITY DEFINER so the check itself is not subject to the policies below,
+-- which would otherwise recurse when a policy queries public.admins.
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (select 1 from public.admins where user_id = auth.uid());
+$$;
+
+revoke all on function public.is_admin() from public;
+grant execute on function public.is_admin() to anon, authenticated;
+
+alter table public.admins enable row level security;
 alter table public.products enable row level security;
 alter table public.collections enable row level security;
 alter table public.collection_products enable row level security;
@@ -118,17 +151,45 @@ drop policy if exists collection_products_read on public.collection_products;
 drop policy if exists collection_products_write on public.collection_products;
 drop policy if exists orders_read on public.orders;
 drop policy if exists orders_write on public.orders;
+drop policy if exists admins_read on public.admins;
+drop policy if exists products_public_read on public.products;
+drop policy if exists products_admin_write on public.products;
+drop policy if exists collections_public_read on public.collections;
+drop policy if exists collections_admin_write on public.collections;
+drop policy if exists collection_products_public_read on public.collection_products;
+drop policy if exists collection_products_admin_write on public.collection_products;
+drop policy if exists orders_public_insert on public.orders;
+drop policy if exists orders_admin_read on public.orders;
+drop policy if exists orders_admin_update on public.orders;
+drop policy if exists orders_admin_delete on public.orders;
 
--- Storefront reads published catalog data. Admin writes with the anon key.
--- Tighten these policies with Supabase Auth before going live on a public domain.
-create policy products_read on public.products for select using (true);
-create policy products_write on public.products for all using (true) with check (true);
-create policy collections_read on public.collections for select using (true);
-create policy collections_write on public.collections for all using (true) with check (true);
-create policy collection_products_read on public.collection_products for select using (true);
-create policy collection_products_write on public.collection_products for all using (true) with check (true);
+-- Admins can see the allowlist. Nothing may edit it through the API; add and
+-- remove admins from the SQL editor or the dashboard.
+create policy admins_read on public.admins for select using (public.is_admin());
 
--- The storefront checkout inserts orders with the anon key; the admin reads and
--- updates them. Put these behind Supabase Auth before going live publicly.
-create policy orders_read on public.orders for select using (true);
-create policy orders_write on public.orders for all using (true) with check (true);
+-- Shoppers see live listings only; an admin additionally sees drafts and
+-- archived products so the dashboard can edit them.
+create policy products_public_read on public.products
+  for select using (status = 'active' or public.is_admin());
+create policy products_admin_write on public.products
+  for all using (public.is_admin()) with check (public.is_admin());
+
+create policy collections_public_read on public.collections
+  for select using (published or public.is_admin());
+create policy collections_admin_write on public.collections
+  for all using (public.is_admin()) with check (public.is_admin());
+
+-- Membership rows carry no private data and the storefront needs them to build
+-- collection pages.
+create policy collection_products_public_read on public.collection_products
+  for select using (true);
+create policy collection_products_admin_write on public.collection_products
+  for all using (public.is_admin()) with check (public.is_admin());
+
+-- Checkout runs unauthenticated, so anyone may place an order, but only an
+-- admin may read one back. Customer names, phones, and addresses live here.
+create policy orders_public_insert on public.orders for insert with check (true);
+create policy orders_admin_read on public.orders for select using (public.is_admin());
+create policy orders_admin_update on public.orders
+  for update using (public.is_admin()) with check (public.is_admin());
+create policy orders_admin_delete on public.orders for delete using (public.is_admin());

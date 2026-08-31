@@ -255,8 +255,8 @@ export default function SettingsPage() {
                 <dd>This browser</dd>
               </div>
               <div>
-                <dt>Admin password</dt>
-                <dd>Set with VITE_ADMIN_PASSWORD</dd>
+                <dt>Admin sign-in</dt>
+                <dd>{catalogSource() === 'supabase' ? 'Supabase Auth' : 'Local password'}</dd>
               </div>
             </dl>
             <p className="gtz-admin__muted">
