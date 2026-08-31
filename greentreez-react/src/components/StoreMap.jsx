@@ -1,37 +1,6 @@
 import { useSiteContact, whatsappUrl } from '../lib/site.js';
 
-/**
- * Google's embed endpoint drops a pin on the query without needing an API key,
- * so the store location renders the same way in development and in production.
- */
-function embedUrl(address) {
-  return `https://www.google.com/maps?q=${encodeURIComponent(address)}&z=15&output=embed`;
-}
-
-function MapFrame({ contact, title }) {
-  return (
-    <div className="gtz-map__frame">
-      <iframe
-        title={title}
-        src={embedUrl(contact.addressOneLine)}
-        loading="lazy"
-        referrerPolicy="no-referrer-when-downgrade"
-        allowFullScreen
-      />
-      <a className="gtz-map__pin" href={contact.mapUrl} target="_blank" rel="noreferrer">
-        <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" aria-hidden="true">
-          <path d="M12 2a7 7 0 00-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 00-7-7zm0 9.5A2.5 2.5 0 1112 6.5a2.5 2.5 0 010 5z" />
-        </svg>
-        <span>
-          <strong>{contact.storeName}</strong>
-          {contact.addressOneLine}
-        </span>
-      </a>
-    </div>
-  );
-}
-
-/** The details card shown beside the map: address, hours, and the ways to reach us. */
+/** Store details: address, hours, and the ways to reach us. */
 export function StoreDetailsCard({ contact }) {
   return (
     <div className="gtz-map__card">
@@ -78,14 +47,14 @@ export function StoreDetailsCard({ contact }) {
 }
 
 /**
- * The map block used on the home page and the contact page. `compact` drops the
- * heading so it can sit inside a page that already has one.
+ * The store-location block used on the contact page and the location pages.
+ * `compact` drops the heading so it can sit inside a page that already has one.
  */
 export default function StoreMap({ compact = false, heading = 'Find us in Nashville', intro }) {
   const contact = useSiteContact();
 
   return (
-    <section className={`gtz-map${compact ? ' gtz-map--compact' : ''}`} aria-label="Store location">
+    <section className={`gtz-map${compact ? ' gtz-map--compact' : ''}`} aria-label="Store details">
       <div className="gtz-map__inner">
         {compact ? null : (
           <header className="gtz-map__head">
@@ -98,7 +67,6 @@ export default function StoreMap({ compact = false, heading = 'Find us in Nashvi
           </header>
         )}
         <div className="gtz-map__body">
-          <MapFrame contact={contact} title={`Map showing ${contact.storeName} at ${contact.addressOneLine}`} />
           <StoreDetailsCard contact={contact} />
         </div>
       </div>

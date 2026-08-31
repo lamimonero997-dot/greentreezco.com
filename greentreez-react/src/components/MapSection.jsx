@@ -35,17 +35,13 @@ export default function MapSection() {
             </a>
           </p>
         </div>
-        <div className="gtz-map-home-embed">
-          <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3221.7524929887845!2d-86.83766492391659!3d36.13611477248445!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x886466a7e6dae3e9%3A0x7e8a1c5e9d4b3f2a!2s850%20Hillwood%20Blvd%20%237%2C%20Nashville%2C%20TN%2037209!5e0!3m2!1sen!2sus!4v1693000000000!5m2!1sen!2sus"
-            width="100%"
-            height="100%"
-            style={{ border: 0 }}
-            allowFullScreen=""
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            title="Green Treez West Nashville Location"
-          />
+        <div className="gtz-map-home-actions">
+          <a className="gtz-map-home-btn" href={contact.mapUrl} target="_blank" rel="noreferrer">
+            Get directions
+          </a>
+          <Link className="gtz-map-home-btn gtz-map-home-btn--ghost" to="/pages/contact-us">
+            Contact the store
+          </Link>
         </div>
       </div>
     </section>

@@ -9,9 +9,8 @@ const MIN_AGE = 21;
  * Age verification for a 21+ retailer.
  *
  * A client-side gate cannot *prove* anything - anyone can clear storage - so this
- * is a documented, auditable affirmation rather than a security control. It asks
- * for a date of birth instead of a single "yes" button so the record shows what
- * the visitor actually attested to, and it re-asks after 30 days.
+ * is a documented, auditable affirmation rather than a security control. The
+ * visitor confirms once that they are 21 or older, and we re-ask after 30 days.
  */
 function readVerification() {
   try {
@@ -24,21 +23,9 @@ function readVerification() {
   }
 }
 
-function yearsSince(dateString) {
-  const dob = new Date(dateString);
-  if (Number.isNaN(dob.getTime())) return null;
-  const now = new Date();
-  let years = now.getFullYear() - dob.getFullYear();
-  const monthDelta = now.getMonth() - dob.getMonth();
-  if (monthDelta < 0 || (monthDelta === 0 && now.getDate() < dob.getDate())) years -= 1;
-  return years;
-}
-
 export default function AgeGate() {
   const settings = useSiteSettings();
   const [verified, setVerified] = useState(() => Boolean(readVerification()));
-  const [dob, setDob] = useState('');
-  const [error, setError] = useState('');
 
   // The gate covers the page, so the page behind it must not scroll.
   useEffect(() => {
@@ -52,19 +39,9 @@ export default function AgeGate() {
 
   if (verified) return null;
 
-  function submit(event) {
-    event.preventDefault();
-    const age = yearsSince(dob);
-    if (age === null) {
-      setError('Enter your date of birth.');
-      return;
-    }
-    if (age < MIN_AGE) {
-      setError(`You must be ${MIN_AGE} or older to enter this store.`);
-      return;
-    }
+  function confirm() {
     try {
-      localStorage.setItem(KEY, JSON.stringify({ at: Date.now(), age }));
+      localStorage.setItem(KEY, JSON.stringify({ at: Date.now(), confirmedMinAge: MIN_AGE }));
     } catch {
       /* private mode: the gate simply reappears next visit */
     }
@@ -75,30 +52,19 @@ export default function AgeGate() {
     <div className="gtz-agegate" role="dialog" aria-modal="true" aria-labelledby="gtz-agegate-title">
       <div className="gtz-agegate__card">
         <span className="gtz-agegate__eyebrow">{settings.storeName}</span>
-        <h1 id="gtz-agegate-title">Verify your age</h1>
+        <h1 id="gtz-agegate-title">Are you {MIN_AGE} or older?</h1>
         <p>
           This store sells hemp-derived THC and CBD products. You must be {MIN_AGE} or older to enter. Valid photo ID is
           required in store and on delivery.
         </p>
-        <form onSubmit={submit}>
-          <label htmlFor="gtz-dob">Date of birth</label>
-          <input
-            id="gtz-dob"
-            type="date"
-            value={dob}
-            max={new Date().toISOString().slice(0, 10)}
-            onChange={(event) => {
-              setDob(event.target.value);
-              setError('');
-            }}
-            required
-          />
-          {error ? <p className="gtz-agegate__error">{error}</p> : null}
-          <button type="submit">Enter store</button>
-        </form>
-        <a className="gtz-agegate__exit" href="https://www.google.com" rel="noreferrer">
-          I am under {MIN_AGE} — leave
-        </a>
+        <div className="gtz-agegate__choices">
+          <button type="button" onClick={confirm}>
+            Yes, I am {MIN_AGE} or older
+          </button>
+          <a className="gtz-agegate__exit" href="https://www.google.com" rel="noreferrer">
+            No, I am under {MIN_AGE}
+          </a>
+        </div>
         <p className="gtz-agegate__legal">
           By entering you confirm the information above is accurate. Products contain less than 0.3% Delta-9 THC derived
           from hemp and are not evaluated by the FDA.

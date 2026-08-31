@@ -6,6 +6,7 @@ import {
   listOrders,
   ORDER_STATUS_LABELS,
   ORDER_STATUSES,
+  orderTotal,
   subscribeOrders,
   updateOrder,
 } from '../../lib/catalog/orders.js';
@@ -101,7 +102,14 @@ function OrderDetail({ order, onClose, onStatus, onDelete }) {
             <dl className="gtz-detail-list">
               <div>
                 <dt>Method</dt>
-                <dd>{order.delivery_method || '—'}</dd>
+                <dd>
+                  {order.delivery_method || '—'}
+                  {order.delivery_eta ? <small> · {order.delivery_eta}</small> : null}
+                </dd>
+              </div>
+              <div>
+                <dt>Shipping fee</dt>
+                <dd>{Number(order.shipping_fee || 0) === 0 ? 'Free' : formatMoney(order.shipping_fee)}</dd>
               </div>
               <div>
                 <dt>Address</dt>
@@ -130,8 +138,16 @@ function OrderDetail({ order, onClose, onStatus, onDelete }) {
               ))}
             </ul>
             <div className="gtz-order-total">
-              <span>Order total</span>
+              <span>Subtotal</span>
               <strong>{formatMoney(order.subtotal)}</strong>
+            </div>
+            <div className="gtz-order-total">
+              <span>Shipping</span>
+              <strong>{Number(order.shipping_fee || 0) === 0 ? 'Free' : formatMoney(order.shipping_fee)}</strong>
+            </div>
+            <div className="gtz-order-total">
+              <span>Order total</span>
+              <strong>{formatMoney(orderTotal(order))}</strong>
             </div>
           </section>
         </div>
@@ -192,7 +208,7 @@ export default function Orders() {
     const live = filtered.filter((order) => order.status !== 'cancelled');
     return {
       count: filtered.length,
-      revenue: live.reduce((sum, order) => sum + Number(order.subtotal || 0), 0),
+      revenue: live.reduce((sum, order) => sum + orderTotal(order), 0),
       units: live.reduce((sum, order) => sum + Number(order.item_count || 0), 0),
     };
   }, [filtered]);
@@ -245,7 +261,10 @@ export default function Orders() {
         address: order.shipping_address,
         payment: order.payment_method,
         items: (order.items || []).map((item) => `${item.quantity}x ${item.title}`).join(' | '),
+        shipping_eta: order.delivery_eta,
         subtotal: (Number(order.subtotal || 0) / 100).toFixed(2),
+        shipping_fee: (Number(order.shipping_fee || 0) / 100).toFixed(2),
+        total: (orderTotal(order) / 100).toFixed(2),
         notes: order.notes,
       }))
     );
@@ -380,7 +399,7 @@ export default function Orders() {
                   <div className="gtz-admin__handle">{order.item_count} items</div>
                 </td>
                 <td>{order.payment_method || '—'}</td>
-                <td>{formatMoney(order.subtotal)}</td>
+                <td>{formatMoney(orderTotal(order))}</td>
                 <td>
                   <span className={`gtz-order-status is-${order.status}`}>
                     {ORDER_STATUS_LABELS[order.status] || order.status}

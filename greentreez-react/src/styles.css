@@ -3223,8 +3223,10 @@ body.gtz-checkout-page { --gtz-co-forest:#153a32; --gtz-co-deep:#102f29; --gtz-c
 .gtz-option__glyph { display:grid; place-items:center; flex:none; min-width:44px; height:30px; padding:0 8px; border:1px solid var(--gtz-co-line); border-radius:6px; background:#fff; color:var(--gtz-co-forest); font-size:.66rem; font-weight:800; letter-spacing:.04em; }
 .gtz-option__body { display:flex; flex-direction:column; gap:2px; min-width:0; }
 .gtz-option__label { font-size:.9rem; font-weight:700; }
+.gtz-option__eta { color:var(--gtz-co-forest); font-size:.78rem; font-weight:600; }
 .gtz-option__note { color:#6b7f77; font-size:.77rem; line-height:1.45; }
-.gtz-option__price { margin-left:auto; color:var(--gtz-co-forest); font-size:.79rem; font-weight:700; white-space:nowrap; }
+.gtz-option__price { display:flex; flex-direction:column; align-items:flex-end; gap:1px; margin-left:auto; color:var(--gtz-co-forest); font-size:.79rem; font-weight:700; white-space:nowrap; }
+.gtz-option__price s { color:#9aa8a2; font-weight:600; }
 
 .gtz-checkout__pickup { display:flex; flex-direction:column; gap:4px; margin-top:16px; padding:16px 18px; border:1px dashed var(--gtz-co-moss); border-radius:11px; background:#f3f6ef; font-size:.88rem; line-height:1.6; }
 .gtz-checkout__pickup strong { font-size:.82rem; letter-spacing:.03em; text-transform:uppercase; }
@@ -3258,7 +3260,9 @@ body.gtz-checkout-page { --gtz-co-forest:#153a32; --gtz-co-deep:#102f29; --gtz-c
 
 .gtz-checkout__totals { margin:18px 0 0; }
 .gtz-checkout__totals > div { display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding:5px 0; font-size:.87rem; }
+.gtz-checkout__totals > div { align-items:flex-start; }
 .gtz-checkout__totals dt { color:#5d726a; }
+.gtz-checkout__totals dt small { display:block; margin-top:2px; color:#8a9992; font-size:.75rem; }
 .gtz-checkout__totals dd { margin:0; font-weight:700; }
 .gtz-checkout__total { margin-top:9px; padding-top:13px !important; border-top:1px solid var(--gtz-co-line); }
 .gtz-checkout__total dt { color:#14251f !important; font-weight:700; }
@@ -3294,6 +3298,7 @@ body.gtz-checkout-page { --gtz-co-forest:#153a32; --gtz-co-deep:#102f29; --gtz-c
 
 /* Payment brand marks on the checkout payment picker */
 .gtz-checkout__options--payment { grid-template-columns:repeat(auto-fit,minmax(258px,1fr)); }
+.gtz-checkout__options .gtz-option { align-items:flex-start; }
 .gtz-checkout__options--payment .gtz-option { align-items:flex-start; padding:15px 16px; }
 .gtz-checkout__options--payment .gtz-option input { margin-top:2px; }
 .gtz-option__marks { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
@@ -3305,7 +3310,7 @@ body.gtz-checkout-page { --gtz-co-forest:#153a32; --gtz-co-deep:#102f29; --gtz-c
 }
 
 /* ---------------------------------------------------------------------------
-   Store map — used on the home page (above the blog roll) and the contact page
+   Store details — used on the contact page and the location pages
    --------------------------------------------------------------------------- */
 .gtz-map {
   --map-forest:#153a32; --map-moss:#4d7564; --map-cream:#f6f4ed; --map-line:#dfdcd0;
@@ -3320,23 +3325,7 @@ body.gtz-checkout-page { --gtz-co-forest:#153a32; --gtz-co-deep:#102f29; --gtz-c
 .gtz-map__head h2 { margin:10px 0 10px; font-family:'Roboto Slab',Georgia,serif; font-size:clamp(1.9rem,3.2vw,2.7rem); font-weight:700; letter-spacing:-.045em; line-height:1.06; }
 .gtz-map__head p { margin:0; color:#4a5f57; font-size:.97rem; line-height:1.7; }
 
-.gtz-map__body { display:grid; grid-template-columns:minmax(0,1.55fr) minmax(300px,.85fr); gap:clamp(18px,2.4vw,30px); align-items:stretch; }
-
-.gtz-map__frame { position:relative; min-height:400px; overflow:hidden; border:1px solid var(--map-line); border-radius:14px; background:#e8e6dc; }
-.gtz-map__frame iframe { display:block; width:100%; height:100%; min-height:400px; border:0; filter:saturate(.92); }
-.gtz-map__pin {
-  position:absolute; left:16px; bottom:16px; right:16px;
-  display:inline-flex; align-items:center; gap:11px;
-  max-width:360px; padding:12px 16px;
-  border-radius:11px; background:#fff; color:#14251f;
-  font-size:.83rem; line-height:1.45; text-decoration:none;
-  box-shadow:0 8px 26px rgba(20,37,31,.2);
-  transition:transform .18s ease, box-shadow .18s ease;
-}
-.gtz-map__pin:hover { transform:translateY(-2px); box-shadow:0 12px 32px rgba(20,37,31,.26); }
-.gtz-map__pin svg { flex:none; color:#c0392b; }
-.gtz-map__pin strong { display:block; font-size:.88rem; }
-.gtz-map__pin span { color:#5d726a; }
+.gtz-map__body { display:grid; grid-template-columns:minmax(0,1fr); gap:clamp(18px,2.4vw,30px); align-items:stretch; max-width:620px; }
 
 .gtz-map__card { display:flex; flex-direction:column; padding:clamp(24px,2.6vw,32px); border:1px solid var(--map-line); border-radius:14px; background:#fff; }
 .gtz-map__card h3 { margin:9px 0 12px; font-family:'Roboto Slab',Georgia,serif; font-size:1.45rem; font-weight:700; letter-spacing:-.035em; }
@@ -3347,13 +3336,14 @@ body.gtz-checkout-page { --gtz-co-forest:#153a32; --gtz-co-deep:#102f29; --gtz-c
 .gtz-map__facts dd { margin:0; font-weight:600; text-align:right; }
 .gtz-map__facts a { color:var(--map-forest); text-decoration:none; }
 .gtz-map__facts a:hover { text-decoration:underline; }
-.gtz-map__actions { display:flex; flex-direction:column; gap:9px; margin-top:auto; }
+.gtz-map__actions { display:flex; flex-wrap:wrap; gap:9px; margin-top:auto; }
+.gtz-map__actions > * { flex:1 1 200px; }
 .gtz-map__btn { display:block; padding:13px 18px; border:1px solid var(--map-forest); border-radius:9px; background:var(--map-forest); color:#fff; font-size:.84rem; font-weight:800; letter-spacing:.02em; text-align:center; text-decoration:none; transition:background .17s ease; }
 .gtz-map__btn:hover { background:#0f2b25; color:#fff; }
 .gtz-map__btn--ghost { border-color:#1f8f4e; background:#1f8f4e; }
 .gtz-map__btn--ghost:hover { background:#18783f; }
 
-/* On the cloned home page the map sits between two full-width sections. */
+/* On the cloned pages this block sits between two full-width sections. */
 .gtz-map-mount .gtz-map { background:#f6f4ed; }
 
 /* ---------------------------------------------------------------------------
@@ -3427,15 +3417,12 @@ body.gtz-contact-page { background:#fff !important; color:#14251f; }
 
 @media (max-width: 980px) {
   .gtz-map__body { grid-template-columns:1fr; }
-  .gtz-map__frame { min-height:320px; }
-  .gtz-map__frame iframe { min-height:320px; }
   .gtz-contact__hero { grid-template-columns:1fr; }
   .gtz-contact__split { grid-template-columns:1fr; }
 }
 
 @media (max-width: 640px) {
   .gtz-contact__grid { grid-template-columns:1fr; }
-  .gtz-map__pin { left:12px; right:12px; bottom:12px; max-width:none; }
 }
 
 /* ---------------------------------------------------------------------------
@@ -3446,13 +3433,9 @@ body.gtz-contact-page { background:#fff !important; color:#14251f; }
 .gtz-agegate__eyebrow { display:block; color:#4d7564; font-size:.71rem; font-weight:800; letter-spacing:.16em; text-transform:uppercase; }
 .gtz-agegate__card h1 { margin:12px 0 12px; font-family:'Roboto Slab',Georgia,serif; font-size:clamp(1.8rem,4vw,2.3rem); font-weight:700; letter-spacing:-.045em; }
 .gtz-agegate__card > p { margin:0 0 24px; color:#4a5f57; font-size:.93rem; line-height:1.65; }
-.gtz-agegate__card form { display:flex; flex-direction:column; gap:8px; text-align:left; }
-.gtz-agegate__card label { color:#4a5f57; font-size:.76rem; font-weight:700; letter-spacing:.02em; }
-.gtz-agegate__card input { width:100%; padding:13px; border:1px solid #dfdcd0; border-radius:9px; background:#fff; color:#14251f; font:inherit; font-size:.95rem; }
-.gtz-agegate__card input:focus { outline:none; border-color:#153a32; box-shadow:0 0 0 3px rgba(21,58,50,.14); }
-.gtz-agegate__card button { margin-top:8px; padding:15px; border:0; border-radius:9px; background:#153a32; color:#fff; font:inherit; font-size:.92rem; font-weight:800; cursor:pointer; transition:background .17s ease; }
+.gtz-agegate__choices { display:flex; flex-direction:column; align-items:stretch; gap:6px; }
+.gtz-agegate__card button { padding:15px; border:0; border-radius:9px; background:#153a32; color:#fff; font:inherit; font-size:.92rem; font-weight:800; cursor:pointer; transition:background .17s ease; }
 .gtz-agegate__card button:hover { background:#0f2b25; }
-.gtz-agegate__error { margin:2px 0 0; color:#b8452f; font-size:.8rem; font-weight:700; }
 .gtz-agegate__exit { display:inline-block; margin-top:16px; color:#6b7f77; font-size:.83rem; text-decoration:underline; }
 .gtz-agegate__exit:hover { color:#153a32; }
 .gtz-agegate__legal { margin:20px 0 0; color:#7a8b84; font-size:.72rem; line-height:1.55; }
@@ -3653,7 +3636,7 @@ body.gtz-contact-page { background:#fff !important; color:#14251f; }
 
 .gtz-map-home-container {
   display: grid;
-  grid-template-columns: .4fr .6fr;
+  grid-template-columns: .55fr .45fr;
   gap: 48px;
   align-items: center;
 }
@@ -3720,21 +3703,41 @@ body.gtz-contact-page { background:#fff !important; color:#14251f; }
   text-decoration: none !important;
 }
 
-.gtz-map-home-embed {
-  width: 100%;
-  height: 420px;
-  position: relative;
-  border-radius: 3px;
-  overflow: hidden;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+.gtz-map-home-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-content: center;
 }
 
-.gtz-map-home-embed iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+.gtz-map-home-btn {
+  flex: 1 1 200px;
+  padding: 14px 22px;
+  border: 1px solid var(--gtz-forest);
+  border-radius: 3px;
+  background: var(--gtz-forest);
+  color: #fff;
+  font-size: .85rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  text-align: center;
+  text-decoration: none;
+  transition: background .2s ease;
+}
+
+.gtz-map-home-btn:hover {
+  background: #0f2b25;
+  color: #fff;
+}
+
+.gtz-map-home-btn--ghost {
+  background: transparent;
+  color: var(--gtz-forest);
+}
+
+.gtz-map-home-btn--ghost:hover {
+  background: var(--gtz-forest);
+  color: #fff;
 }
 
 @media (max-width: 900px) {
@@ -3746,10 +3749,6 @@ body.gtz-contact-page { background:#fff !important; color:#14251f; }
   .gtz-map-home-section {
     padding-top: 70px;
     padding-bottom: 70px;
-  }
-
-  .gtz-map-home-embed {
-    height: 360px;
   }
 }
 
@@ -3765,10 +3764,6 @@ body.gtz-contact-page { background:#fff !important; color:#14251f; }
   .gtz-map-home-section {
     padding-top: 50px;
     padding-bottom: 50px;
-  }
-
-  .gtz-map-home-embed {
-    height: 300px;
   }
 }
 

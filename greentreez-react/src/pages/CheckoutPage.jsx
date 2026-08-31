@@ -5,6 +5,14 @@ import StoreShell from '../components/StoreShell.jsx';
 import { clearLocalCart, localCartTotal, readLocalCart, updateLocalCartItem } from '../lib/catalog/cart.js';
 import { formatMoney } from '../lib/catalog/model.js';
 import { createOrder, newOrderReference } from '../lib/catalog/orders.js';
+import {
+  DEFAULT_SHIPPING_ID,
+  SHIPPING_METHODS,
+  findShippingMethod,
+  freeShippingRemainder,
+  shippingFee,
+  shippingPriceLabel,
+} from '../lib/catalog/shipping.js';
 import { useSiteContact, whatsappUrl } from '../lib/site.js';
 
 const PAYMENT_METHODS = [
@@ -16,23 +24,6 @@ const PAYMENT_METHODS = [
   { id: 'crypto', label: 'Bitcoin / USDT', note: 'On-chain, address sent on request' },
   { id: 'cash', label: 'Cash on delivery or pickup', note: 'Pay when you receive your order' },
 ];
-
-function deliveryMethods(addressOneLine) {
-  return [
-    {
-      id: 'delivery',
-      label: 'Delivery',
-      note: 'Discreet packaging, tracked to your address',
-      price: 'Quoted on WhatsApp',
-    },
-    {
-      id: 'pickup',
-      label: 'In-store pickup',
-      note: addressOneLine,
-      price: 'Free',
-    },
-  ];
-}
 
 const EMPTY_FORM = {
   firstName: '',
@@ -47,7 +38,7 @@ const EMPTY_FORM = {
   notes: '',
 };
 
-function buildWhatsappMessage({ reference, cart, subtotal, delivery, payment, form, pickupAddress }) {
+function buildWhatsappMessage({ reference, cart, subtotal, shipping, shippingCost, total, payment, form, pickupAddress }) {
   const lines = [
     'Hello Green Treez Company - I would like to place this order.',
     '',
@@ -66,6 +57,8 @@ function buildWhatsappMessage({ reference, cart, subtotal, delivery, payment, fo
   lines.push(
     '',
     `Subtotal: ${formatMoney(subtotal)}`,
+    `${shipping.label}: ${shippingCost === 0 ? 'Free' : formatMoney(shippingCost)}`,
+    `Total: ${formatMoney(total)}`,
     '',
     'CUSTOMER',
     `Name: ${form.firstName} ${form.lastName}`.trim(),
@@ -73,10 +66,11 @@ function buildWhatsappMessage({ reference, cart, subtotal, delivery, payment, fo
     form.email.trim() ? `Email: ${form.email.trim()}` : null,
     '',
     'FULFILLMENT',
-    `Method: ${delivery.label}`
+    `Method: ${shipping.label}`,
+    `Estimated: ${shipping.eta}`
   );
 
-  if (delivery.id === 'delivery') {
+  if (shipping.requiresAddress) {
     lines.push(
       `Address: ${[form.address, form.apartment].filter(Boolean).join(', ')}`,
       `City/State/ZIP: ${form.city}, ${form.region} ${form.postalCode}`
@@ -106,13 +100,12 @@ function Field({ label, error, wide, children }) {
 
 export default function CheckoutPage() {
   const [cart, setCart] = useState(() => readLocalCart());
-  const [deliveryId, setDeliveryId] = useState('delivery');
+  const [shippingId, setShippingId] = useState(DEFAULT_SHIPPING_ID);
   const [paymentId, setPaymentId] = useState('card');
   const [form, setForm] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const contact = useSiteContact();
-  const DELIVERY_METHODS = useMemo(() => deliveryMethods(contact.addressOneLine), [contact.addressOneLine]);
 
   useEffect(() => {
     const sync = (event) => setCart(event.detail || readLocalCart());
@@ -132,7 +125,10 @@ export default function CheckoutPage() {
     [cart]
   );
 
-  const delivery = DELIVERY_METHODS.find((method) => method.id === deliveryId) || DELIVERY_METHODS[0];
+  const shipping = findShippingMethod(shippingId);
+  const shippingCost = shippingFee(shipping, subtotal);
+  const total = subtotal + shippingCost;
+  const freeShippingGap = freeShippingRemainder(subtotal);
   const payment = PAYMENT_METHODS.find((method) => method.id === paymentId) || PAYMENT_METHODS[0];
 
   const setField = (name) => (event) => {
@@ -148,7 +144,7 @@ export default function CheckoutPage() {
     // Ten digits is the shortest usable US number, and the WhatsApp confirmation depends on it.
     if (form.phone.replace(/\D/g, '').length < 10) next.phone = 'Enter a valid phone number';
     if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) next.email = 'Enter a valid email';
-    if (deliveryId === 'delivery') {
+    if (shipping.requiresAddress) {
       if (!form.address.trim()) next.address = 'Required';
       if (!form.city.trim()) next.city = 'Required';
       if (!form.region.trim()) next.region = 'Required';
@@ -176,7 +172,9 @@ export default function CheckoutPage() {
       reference,
       cart,
       subtotal,
-      delivery,
+      shipping,
+      shippingCost,
+      total,
       payment,
       form,
       pickupAddress: contact.addressOneLine,
@@ -192,13 +190,12 @@ export default function CheckoutPage() {
       customer_name: `${form.firstName} ${form.lastName}`.trim(),
       customer_phone: form.phone,
       customer_email: form.email.trim(),
-      delivery_method: delivery.label,
-      shipping_address:
-        delivery.id === 'delivery'
-          ? [form.address, form.apartment, `${form.city}, ${form.region} ${form.postalCode}`]
-              .filter(Boolean)
-              .join(', ')
-          : contact.addressOneLine,
+      delivery_method: shipping.label,
+      delivery_eta: shipping.eta,
+      shipping_fee: shippingCost,
+      shipping_address: shipping.requiresAddress
+        ? [form.address, form.apartment, `${form.city}, ${form.region} ${form.postalCode}`].filter(Boolean).join(', ')
+        : contact.addressOneLine,
       payment_method: payment.label,
       notes: form.notes.trim(),
       items: cart.items.map((item) => ({
@@ -209,6 +206,7 @@ export default function CheckoutPage() {
         price: Number(item.price || 0),
       })),
       subtotal,
+      total,
     });
 
     clearLocalCart();
@@ -281,28 +279,45 @@ export default function CheckoutPage() {
 
             <section className="gtz-checkout__card">
               <h2>
-                <span>2</span> Delivery method
+                <span>2</span> Shipping method
               </h2>
+              {freeShippingGap ? (
+                <p className="gtz-checkout__hint">
+                  Add {formatMoney(freeShippingGap)} more to unlock free standard shipping.
+                </p>
+              ) : (
+                <p className="gtz-checkout__hint">Your order qualifies for free standard shipping.</p>
+              )}
               <div className="gtz-checkout__options">
-                {DELIVERY_METHODS.map((method) => (
-                  <label key={method.id} className={`gtz-option${deliveryId === method.id ? ' is-selected' : ''}`}>
-                    <input
-                      type="radio"
-                      name="delivery"
-                      value={method.id}
-                      checked={deliveryId === method.id}
-                      onChange={() => setDeliveryId(method.id)}
-                    />
-                    <span className="gtz-option__body">
-                      <span className="gtz-option__label">{method.label}</span>
-                      <span className="gtz-option__note">{method.note}</span>
-                    </span>
-                    <span className="gtz-option__price">{method.price}</span>
-                  </label>
-                ))}
+                {SHIPPING_METHODS.map((method) => {
+                  const fee = shippingFee(method, subtotal);
+                  const discounted = fee === 0 && method.fee > 0;
+                  return (
+                    <label key={method.id} className={`gtz-option${shippingId === method.id ? ' is-selected' : ''}`}>
+                      <input
+                        type="radio"
+                        name="shipping"
+                        value={method.id}
+                        checked={shippingId === method.id}
+                        onChange={() => setShippingId(method.id)}
+                      />
+                      <span className="gtz-option__body">
+                        <span className="gtz-option__label">{method.label}</span>
+                        <span className="gtz-option__eta">{method.eta}</span>
+                        <span className="gtz-option__note">
+                          {method.id === 'pickup' ? contact.addressOneLine : method.note}
+                        </span>
+                      </span>
+                      <span className="gtz-option__price">
+                        {discounted ? <s>{formatMoney(method.fee)}</s> : null}
+                        {shippingPriceLabel(method, subtotal)}
+                      </span>
+                    </label>
+                  );
+                })}
               </div>
 
-              {deliveryId === 'delivery' ? (
+              {shipping.requiresAddress ? (
                 <div className="gtz-checkout__grid gtz-checkout__grid--address">
                   <Field label="Street address" error={errors.address} wide>
                     <input type="text" autoComplete="address-line1" value={form.address} onChange={setField('address')} />
@@ -333,7 +348,7 @@ export default function CheckoutPage() {
                 </div>
               ) : (
                 <div className="gtz-checkout__pickup">
-                  <strong>Pick up at our Nashville store</strong>
+                  <strong>Pick up at our Nashville store — {shipping.eta.toLowerCase()}</strong>
                   {contact.addressLines.map((line) => (
                     <span key={line}>{line}</span>
                   ))}
@@ -393,7 +408,7 @@ export default function CheckoutPage() {
                     <path d="M12.04 2A9.9 9.9 0 0 0 2.13 11.9c0 1.75.46 3.46 1.33 4.97L2 22l5.28-1.38a9.87 9.87 0 0 0 4.76 1.21h.01a9.9 9.9 0 0 0 9.9-9.9A9.9 9.9 0 0 0 12.04 2Zm0 18.06h-.01a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.13.82.84-3.05-.2-.31a8.19 8.19 0 0 1-1.26-4.38 8.24 8.24 0 1 1 8.24 8.25Zm4.52-6.17c-.25-.13-1.47-.72-1.69-.8-.23-.09-.39-.13-.56.12-.16.25-.63.8-.78.96-.14.17-.29.19-.53.06-.25-.12-1.05-.38-1.99-1.23a7.4 7.4 0 0 1-1.38-1.71c-.14-.25-.02-.38.11-.5.11-.11.25-.29.37-.44.13-.14.17-.25.25-.41.09-.17.05-.31-.02-.44-.06-.12-.56-1.35-.77-1.85-.2-.48-.4-.42-.56-.43h-.47a.9.9 0 0 0-.66.31c-.22.25-.86.85-.86 2.06s.88 2.39 1 2.55c.13.17 1.74 2.65 4.2 3.71.59.26 1.05.41 1.4.52.59.19 1.13.16 1.55.1.47-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.15-1.18-.06-.1-.23-.17-.48-.29Z" />
                   </svg>
                 </span>
-                {submitting ? 'Opening WhatsApp...' : `Checkout on WhatsApp - ${formatMoney(subtotal)}`}
+                {submitting ? 'Opening WhatsApp...' : `Checkout on WhatsApp - ${formatMoney(total)}`}
               </button>
               <p className="gtz-checkout__legal">
                 By continuing you confirm you are 21 or older. You will be redirected to WhatsApp to confirm the order
@@ -437,12 +452,15 @@ export default function CheckoutPage() {
                   <dd>{formatMoney(subtotal)}</dd>
                 </div>
                 <div>
-                  <dt>{delivery.label}</dt>
-                  <dd>{delivery.price}</dd>
+                  <dt>
+                    {shipping.label}
+                    <small>{shipping.eta}</small>
+                  </dt>
+                  <dd>{shippingPriceLabel(shipping, subtotal)}</dd>
                 </div>
                 <div className="gtz-checkout__total">
                   <dt>Total due</dt>
-                  <dd>{formatMoney(subtotal)}</dd>
+                  <dd>{formatMoney(total)}</dd>
                 </div>
               </dl>
               <ul className="gtz-checkout__assurance">

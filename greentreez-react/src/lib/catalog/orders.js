@@ -42,13 +42,16 @@ function normalize(order) {
     items,
     status: order.status || 'new',
     subtotal: Number(order.subtotal || 0),
+    shipping_fee: Number(order.shipping_fee || 0),
+    total: Number(order.total ?? Number(order.subtotal || 0) + Number(order.shipping_fee || 0)),
     item_count: items.reduce((sum, item) => sum + Number(item.quantity || 0), 0),
     created_at: order.created_at || new Date().toISOString(),
   };
 }
 
 export function orderTotal(order) {
-  return Number(order?.subtotal || 0);
+  if (order?.total != null) return Number(order.total);
+  return Number(order?.subtotal || 0) + Number(order?.shipping_fee || 0);
 }
 
 export function newOrderReference() {
@@ -77,11 +80,14 @@ export async function createOrder(order) {
         customer_phone: record.customer_phone || '',
         customer_email: record.customer_email || '',
         delivery_method: record.delivery_method || '',
+        delivery_eta: record.delivery_eta || '',
         shipping_address: record.shipping_address || '',
+        shipping_fee: record.shipping_fee,
         payment_method: record.payment_method || '',
         notes: record.notes || '',
         items: record.items,
         subtotal: record.subtotal,
+        total: record.total,
         created_at: record.created_at,
       });
       if (error) throw error;

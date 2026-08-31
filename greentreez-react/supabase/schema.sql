@@ -87,14 +87,23 @@ create table if not exists public.orders (
   customer_phone text not null default '',
   customer_email text not null default '',
   delivery_method text not null default '',
+  delivery_eta text not null default '',
   shipping_address text not null default '',
+  shipping_fee integer not null default 0,
   payment_method text not null default '',
   notes text not null default '',
   items jsonb not null default '[]'::jsonb,
   subtotal integer not null default 0,
+  total integer not null default 0,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Shipping columns were added after the first release, so bring existing
+-- installs up to date. Prices are in cents, like every other amount here.
+alter table public.orders add column if not exists delivery_eta text not null default '';
+alter table public.orders add column if not exists shipping_fee integer not null default 0;
+alter table public.orders add column if not exists total integer not null default 0;
 
 create index if not exists orders_created_idx on public.orders (created_at desc);
 create index if not exists orders_status_idx on public.orders (status);
