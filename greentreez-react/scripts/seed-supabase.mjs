@@ -53,12 +53,24 @@ function productRow(product) {
   };
 }
 
-async function upsert(table, rows, chunkSize = 200) {
-  for (let i = 0; i < rows.length; i += chunkSize) {
-    const slice = rows.slice(i, i + chunkSize);
+// Postgres rejects an ON CONFLICT DO UPDATE that touches the same row twice in
+// one command, so collapse duplicate keys before sending a batch. Later rows win.
+function dedupe(rows, keyOf) {
+  const byKey = new Map();
+  for (const row of rows) byKey.set(keyOf(row), row);
+  return [...byKey.values()];
+}
+
+async function upsert(table, rows, keyOf, chunkSize = 200) {
+  const unique = dedupe(rows, keyOf);
+  if (unique.length !== rows.length) {
+    console.log(`  ${table}: skipped ${rows.length - unique.length} duplicate rows`);
+  }
+  for (let i = 0; i < unique.length; i += chunkSize) {
+    const slice = unique.slice(i, i + chunkSize);
     const { error } = await supabase.from(table).upsert(slice);
     if (error) throw error;
-    console.log(`  ${table} ${Math.min(i + chunkSize, rows.length)}/${rows.length}`);
+    console.log(`  ${table} ${Math.min(i + chunkSize, unique.length)}/${unique.length}`);
   }
 }
 
@@ -85,8 +97,8 @@ for (const collection of catalog.collections) {
 }
 
 console.log(`Seeding ${products.length} products, ${collections.length} collections...`);
-await upsert('collections', collections);
-await upsert('products', products);
+await upsert('collections', collections, (row) => row.id);
+await upsert('products', products, (row) => row.id);
 await supabase.from('collection_products').delete().neq('product_id', '');
-await upsert('collection_products', joins, 500);
+await upsert('collection_products', joins, (row) => `${row.collection_id}::${row.product_id}`, 500);
 console.log('Done.');
