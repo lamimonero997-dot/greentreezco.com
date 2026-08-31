@@ -113,14 +113,7 @@ export default function ShopChrome({ children }) {
                 <li>
                   <a href={contact.telHref}>{contact.phoneDisplay}</a>
                 </li>
-                <li>
-                  <a href={whatsappUrl(contact.whatsappGreeting)} target="_blank" rel="noreferrer">
-                    Chat on WhatsApp
-                  </a>
-                </li>
-                <li>
-                  <a href={contact.mailtoHref}>{contact.email}</a>
-                </li>
+
                 <li>
                   <a className="gtz-footer__address" href={contact.mapUrl} target="_blank" rel="noreferrer">
                     {contact.addressLines.map((line) => (
