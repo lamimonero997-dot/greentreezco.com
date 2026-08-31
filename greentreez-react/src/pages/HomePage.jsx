@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import ProductCard from '../components/ProductCard.jsx';
 import ShopChrome from '../components/ShopChrome.jsx';
+import MapSection from '../components/MapSection.jsx';
 import { loadCatalog } from '../lib/catalog/store.js';
 
 const SHOP_CATEGORIES = [
@@ -85,6 +86,8 @@ export default function HomePage() {
             ))}
           </div>
         </section>
+
+        <MapSection />
 
         <section className="gtz-home-section gtz-home-section--featured">
           <div className="gtz-section-heading">

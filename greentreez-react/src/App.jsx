@@ -4,6 +4,7 @@ import { useStoreNavigation } from './hooks/useStoreNavigation.js';
 import AdminApp, { CollectionsHome, ProductEditor, ProductsHome } from './pages/admin/AdminApp.jsx';
 import StorePage from './pages/StorePage.jsx';
 import SpecialDealsPage from './pages/SpecialDealsPage.jsx';
+import ContactPage from './pages/ContactPage.jsx';
 
 export default function App() {
   const { pathname } = useLocation();
@@ -20,6 +21,9 @@ export default function App() {
         </Route>
         <Route path="/pages/daily-deals" element={<SpecialDealsPage />} />
         <Route path="/pages/store-offers-discounts" element={<SpecialDealsPage />} />
+        <Route path="/pages/contact" element={<ContactPage />} />
+        <Route path="/pages/contact-us" element={<ContactPage />} />
+        <Route path="/contact" element={<ContactPage />} />
         <Route path="*" element={<StorePage />} />
       </Routes>
       {isAdmin ? null : <CartDrawer />}
