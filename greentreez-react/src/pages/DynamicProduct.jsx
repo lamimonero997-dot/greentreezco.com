@@ -1,3 +1,4 @@
+import DOMPurify from 'dompurify';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import ProductCard from '../components/ProductCard.jsx';
@@ -69,12 +70,21 @@ function formatDescription(text) {
 
 function safeDescriptionHtml(html) {
   if (typeof html !== 'string') return '';
-  // Product copy is editable in the admin. Keep basic formatting but never let
-  // catalog content execute code or embed an untrusted document.
-  return html
-    .replace(/<\/?(?:script|style|iframe|object|embed|link|meta)[^>]*>/gi, '')
-    .replace(/\son\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '')
-    .replace(/\s(?:href|src)\s*=\s*(?:"\s*javascript:[^"]*"|'\s*javascript:[^']*'|\s*javascript:[^\s>]+)/gi, '');
+  // Product copy is editable in the admin, so it is untrusted here: a compromised
+  // admin account must not become script execution on every shopper's page.
+  // Blacklist regexes cannot do this - "<scr<script>ipt>" reassembles into a live
+  // tag once the inner match is removed - so parse and allowlist instead.
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: [
+      'p', 'br', 'strong', 'b', 'em', 'i', 'u', 's', 'ul', 'ol', 'li',
+      'h2', 'h3', 'h4', 'blockquote', 'span', 'div', 'a', 'table', 'thead',
+      'tbody', 'tr', 'th', 'td', 'img',
+    ],
+    ALLOWED_ATTR: ['href', 'title', 'target', 'rel', 'src', 'alt', 'width', 'height', 'class'],
+    ALLOWED_URI_REGEXP: /^(?:https?:|mailto:|tel:|\/|#)/i,
+    FORBID_TAGS: ['style', 'base', 'form'],
+    ALLOW_DATA_ATTR: false,
+  });
 }
 
 function relatedProducts(catalog, product) {

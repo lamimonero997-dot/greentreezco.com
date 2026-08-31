@@ -24,7 +24,8 @@ function existingHandles(root) {
 }
 
 function cardHtml(product) {
-  const href = `/products/${product.handle}`;
+  // Escaped: the database is the trust boundary, not the admin form's slugify().
+  const href = escapeHtml(`/products/${product.handle}`);
   const image = productImage(product);
   const price = formatMoney(productPrice(product));
   const strain = product.strain

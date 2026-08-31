@@ -88,8 +88,11 @@ export async function createOrder(order) {
       window.dispatchEvent(new CustomEvent(EVENT));
       return record;
     } catch (error) {
-      // Never block a customer's checkout on a logging failure.
-      console.warn('[orders] Supabase insert failed, keeping the order locally', error);
+      // Never block a customer's checkout on a logging failure. The order still
+      // reaches us over WhatsApp, so do not persist the customer's name, phone,
+      // and address into their own browser as a consolation prize.
+      console.warn('[orders] Supabase insert failed; order continues to WhatsApp only', error);
+      return record;
     }
   }
 

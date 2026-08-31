@@ -3437,3 +3437,22 @@ body.gtz-contact-page { background:#fff !important; color:#14251f; }
   .gtz-contact__grid { grid-template-columns:1fr; }
   .gtz-map__pin { left:12px; right:12px; bottom:12px; max-width:none; }
 }
+
+/* ---------------------------------------------------------------------------
+   Age verification gate (21+)
+   --------------------------------------------------------------------------- */
+.gtz-agegate { position:fixed; inset:0; z-index:1000; display:grid; place-items:center; padding:20px; background:rgba(9,26,22,.93); backdrop-filter:blur(6px); font-family:Poppins,system-ui,sans-serif; overflow:auto; }
+.gtz-agegate__card { width:min(460px,100%); padding:clamp(28px,5vw,46px); border-radius:16px; background:#f8f6ef; color:#14251f; text-align:center; box-shadow:0 24px 80px rgba(0,0,0,.4); }
+.gtz-agegate__eyebrow { display:block; color:#4d7564; font-size:.71rem; font-weight:800; letter-spacing:.16em; text-transform:uppercase; }
+.gtz-agegate__card h1 { margin:12px 0 12px; font-family:'Roboto Slab',Georgia,serif; font-size:clamp(1.8rem,4vw,2.3rem); font-weight:700; letter-spacing:-.045em; }
+.gtz-agegate__card > p { margin:0 0 24px; color:#4a5f57; font-size:.93rem; line-height:1.65; }
+.gtz-agegate__card form { display:flex; flex-direction:column; gap:8px; text-align:left; }
+.gtz-agegate__card label { color:#4a5f57; font-size:.76rem; font-weight:700; letter-spacing:.02em; }
+.gtz-agegate__card input { width:100%; padding:13px; border:1px solid #dfdcd0; border-radius:9px; background:#fff; color:#14251f; font:inherit; font-size:.95rem; }
+.gtz-agegate__card input:focus { outline:none; border-color:#153a32; box-shadow:0 0 0 3px rgba(21,58,50,.14); }
+.gtz-agegate__card button { margin-top:8px; padding:15px; border:0; border-radius:9px; background:#153a32; color:#fff; font:inherit; font-size:.92rem; font-weight:800; cursor:pointer; transition:background .17s ease; }
+.gtz-agegate__card button:hover { background:#0f2b25; }
+.gtz-agegate__error { margin:2px 0 0; color:#b8452f; font-size:.8rem; font-weight:700; }
+.gtz-agegate__exit { display:inline-block; margin-top:16px; color:#6b7f77; font-size:.83rem; text-decoration:underline; }
+.gtz-agegate__exit:hover { color:#153a32; }
+.gtz-agegate__legal { margin:20px 0 0; color:#7a8b84; font-size:.72rem; line-height:1.55; }

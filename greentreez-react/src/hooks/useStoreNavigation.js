@@ -33,7 +33,10 @@ export function useStoreNavigation(enabled = true) {
       if (!link) return;
 
       const href = link.getAttribute('href');
+      // Browsers normalise a backslash to a slash, so "/\evil.com" becomes a
+      // protocol-relative URL. Reject both forms.
       if (!href || !href.startsWith('/') || href.startsWith('//')) return;
+      if (href.includes('\\')) return;
       // Admin routes are ordinary React Router links; leave them alone.
       if (href === '/admin' || href.startsWith('/admin/')) return;
       if (link.target && link.target !== '_self') return;

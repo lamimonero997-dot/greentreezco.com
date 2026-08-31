@@ -193,3 +193,89 @@ create policy orders_admin_read on public.orders for select using (public.is_adm
 create policy orders_admin_update on public.orders
   for update using (public.is_admin()) with check (public.is_admin());
 create policy orders_admin_delete on public.orders for delete using (public.is_admin());
+
+-- ---------------------------------------------------------------------------
+-- Order integrity
+--
+-- Checkout is unauthenticated, so everything an order carries arrives from a
+-- browser the shop does not control: quantities, prices, and the subtotal all
+-- come out of localStorage and can be edited before submission. These guards
+-- are the only place that can be enforced.
+-- ---------------------------------------------------------------------------
+
+-- Bound the shape of an order so a script cannot store megabytes of junk.
+alter table public.orders drop constraint if exists orders_sane_shape;
+alter table public.orders add constraint orders_sane_shape check (
+  subtotal >= 0
+  and subtotal <= 100000000
+  and jsonb_typeof(items) = 'array'
+  and jsonb_array_length(items) between 0 and 100
+  and length(customer_name) <= 200
+  and length(customer_phone) <= 40
+  and length(customer_email) <= 320
+  and length(shipping_address) <= 500
+  and length(notes) <= 2000
+  and length(reference) <= 40
+);
+
+-- Recompute the subtotal from the catalog, ignoring whatever the browser sent.
+-- Each item names a product handle and a variant title; the price comes from
+-- the products table. Anything that cannot be matched is priced at zero and
+-- flagged, rather than silently trusted.
+create or replace function public.gtz_price_order()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  item jsonb;
+  variant jsonb;
+  qty integer;
+  unit_price integer;
+  computed bigint := 0;
+  repriced jsonb := '[]'::jsonb;
+  matched boolean;
+begin
+  for item in select * from jsonb_array_elements(coalesce(new.items, '[]'::jsonb))
+  loop
+    qty := greatest(0, least(1000, coalesce((item->>'quantity')::int, 0)));
+    unit_price := 0;
+    matched := false;
+
+    for variant in
+      select v
+      from public.products p,
+           lateral jsonb_array_elements(p.variants) v
+      where p.handle = item->>'handle'
+        and p.status = 'active'
+    loop
+      if item->>'variant_title' is null
+         or variant->>'title' is not distinct from item->>'variant_title' then
+        unit_price := coalesce((variant->>'price')::int, 0);
+        matched := true;
+        exit;
+      end if;
+    end loop;
+
+    computed := computed + (unit_price::bigint * qty);
+    repriced := repriced || jsonb_build_object(
+      'handle', item->>'handle',
+      'title', item->>'title',
+      'variant_title', item->>'variant_title',
+      'quantity', qty,
+      'price', unit_price,
+      'price_verified', matched
+    );
+  end loop;
+
+  new.items := repriced;
+  new.subtotal := least(computed, 100000000)::int;
+  return new;
+end;
+$$;
+
+drop trigger if exists orders_price_check on public.orders;
+create trigger orders_price_check
+before insert on public.orders
+for each row execute function public.gtz_price_order();
