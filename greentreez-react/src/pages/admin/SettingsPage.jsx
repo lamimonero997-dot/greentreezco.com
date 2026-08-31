@@ -104,19 +104,23 @@ export default function SettingsPage() {
                 {errors.storeName ? <em className="gtz-field__error">{errors.storeName}</em> : null}
               </label>
               <label className={`gtz-field${errors.phoneDisplay ? ' is-invalid' : ''}`}>
-                <span>Phone, as displayed</span>
+                <span>Phone for calls, as displayed</span>
                 <input value={form.phoneDisplay} onChange={set('phoneDisplay')} placeholder="(510) 394-2813" />
                 {errors.phoneDisplay ? <em className="gtz-field__error">{errors.phoneDisplay}</em> : null}
               </label>
               <label className={`gtz-field${errors.phoneE164 ? ' is-invalid' : ''}`}>
-                <span>Phone, dialable</span>
+                <span>Phone for calls, dialable</span>
                 <input value={form.phoneE164} onChange={set('phoneE164')} placeholder="+15103942813" />
                 {errors.phoneE164 ? <em className="gtz-field__error">{errors.phoneE164}</em> : null}
               </label>
               <label className={`gtz-field${errors.whatsappNumber ? ' is-invalid' : ''}`}>
-                <span>WhatsApp number</span>
-                <input value={form.whatsappNumber} onChange={set('whatsappNumber')} placeholder="15103942813" />
+                <span>WhatsApp number, dialable</span>
+                <input value={form.whatsappNumber} onChange={set('whatsappNumber')} placeholder="14133580385" />
                 {errors.whatsappNumber ? <em className="gtz-field__error">{errors.whatsappNumber}</em> : null}
+              </label>
+              <label className="gtz-field">
+                <span>WhatsApp number, as displayed</span>
+                <input value={form.whatsappDisplay} onChange={set('whatsappDisplay')} placeholder="(413) 358-0385" />
               </label>
               <label className={`gtz-field${errors.email ? ' is-invalid' : ''}`}>
                 <span>Email</span>
@@ -215,7 +219,7 @@ export default function SettingsPage() {
                   <dt>WhatsApp</dt>
                   <dd>
                     <a href={whatsappUrl(preview.whatsappGreeting)} target="_blank" rel="noreferrer">
-                      wa.me/{preview.whatsappNumber}
+                      {preview.whatsappDisplay}
                     </a>
                   </dd>
                 </div>

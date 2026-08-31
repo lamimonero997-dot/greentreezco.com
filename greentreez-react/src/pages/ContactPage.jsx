@@ -70,7 +70,7 @@ export default function ContactPage() {
       id: 'whatsapp',
       eyebrow: 'Fastest',
       title: 'WhatsApp',
-      body: 'Order updates, product advice, and payment details. Usually answered within minutes during opening hours.',
+      body: `Message ${contact.whatsappDisplay} for order updates, product advice, and payment details. Usually answered within minutes during opening hours.`,
       action: 'Start a chat',
       href: whatsappUrl(contact.whatsappGreeting),
       external: true,
@@ -171,7 +171,7 @@ export default function ContactPage() {
           <form className="gtz-contact__form" onSubmit={onSubmit} noValidate>
             <h2>Send us a message</h2>
             <p className="gtz-contact__form-note">
-              Fill this in and we will open WhatsApp with your message ready to send to {contact.phoneDisplay}.
+              Fill this in and we will open WhatsApp with your message ready to send to {contact.whatsappDisplay}.
             </p>
             <div className="gtz-contact__grid">
               <Field label="Your name" error={errors.name}>

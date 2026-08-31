@@ -2,14 +2,17 @@ import { useEffect, useState } from 'react';
 
 // Storefront settings the shop owner can edit from the admin. Defaults live here
 // so the site renders correctly before anything has been saved.
-const KEY = 'gtz-site-settings-v1';
+// Bumped when a default must reach browsers that already cached the old value:
+// v2 moves WhatsApp onto its own number, separate from the number we take calls on.
+const KEY = 'gtz-site-settings-v2';
 const EVENT = 'gtz-settings-change';
 
 export const DEFAULT_SETTINGS = {
   storeName: 'Green Treez Company',
   phoneDisplay: '(510) 394-2813',
   phoneE164: '+15103942813',
-  whatsappNumber: '15103942813',
+  whatsappNumber: '14133580385',
+  whatsappDisplay: '(413) 358-0385',
   email: 'hello@example.com',
   addressStreet: '850 Hillwood Blvd Ste 7',
   addressCity: 'Nashville',

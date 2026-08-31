@@ -241,7 +241,7 @@ export default function CheckoutPage() {
             <h1>Complete your order</h1>
             <p>
               Confirm your details and preferred payment method. Tapping checkout opens WhatsApp with your order ready to
-              send to our team at <a href={contact.telHref}>{contact.phoneDisplay}</a>.
+              send to our team on {contact.whatsappDisplay}.
             </p>
           </div>
           <ol className="gtz-checkout__steps">
@@ -397,7 +397,7 @@ export default function CheckoutPage() {
               </button>
               <p className="gtz-checkout__legal">
                 By continuing you confirm you are 21 or older. You will be redirected to WhatsApp to confirm the order
-                with our team at {contact.phoneDisplay}.
+                with our team on {contact.whatsappDisplay}.
               </p>
             </div>
           </form>
