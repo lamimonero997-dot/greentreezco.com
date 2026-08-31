@@ -3337,7 +3337,7 @@ body.gtz-checkout-page { --gtz-co-forest:#153a32; --gtz-co-deep:#102f29; --gtz-c
 .gtz-map__head h2 { margin:10px 0 10px; font-family:'Roboto Slab',Georgia,serif; font-size:clamp(1.9rem,3.2vw,2.7rem); font-weight:700; letter-spacing:-.045em; line-height:1.06; }
 .gtz-map__head p { margin:0; color:#4a5f57; font-size:.97rem; line-height:1.7; }
 
-.gtz-map__body { display:grid; grid-template-columns:minmax(0,1fr); gap:clamp(18px,2.4vw,30px); align-items:stretch; max-width:620px; }
+.gtz-map__body { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:clamp(18px,2.4vw,30px); align-items:stretch; }
 
 .gtz-map__card { display:flex; flex-direction:column; padding:clamp(24px,2.6vw,32px); border:1px solid var(--map-line); border-radius:14px; background:#fff; }
 .gtz-map__card h3 { margin:9px 0 12px; font-family:'Roboto Slab',Georgia,serif; font-size:1.45rem; font-weight:700; letter-spacing:-.035em; }
@@ -3348,6 +3348,15 @@ body.gtz-checkout-page { --gtz-co-forest:#153a32; --gtz-co-deep:#102f29; --gtz-c
 .gtz-map__facts dd { margin:0; font-weight:600; text-align:right; }
 .gtz-map__facts a { color:var(--map-forest); text-decoration:none; }
 .gtz-map__facts a:hover { text-decoration:underline; }
+.gtz-map__lede { margin:0 0 20px; color:#4a5f57; font-size:.92rem; line-height:1.65; }
+.gtz-map__ship { margin:0 0 14px; padding:18px 0 0; border-top:1px solid var(--map-line); list-style:none; }
+.gtz-map__ship li { display:flex; align-items:baseline; justify-content:space-between; gap:16px; padding:9px 0; border-bottom:1px solid #efece1; }
+.gtz-map__ship li:last-child { border-bottom:0; }
+.gtz-map__ship strong { display:block; font-size:.89rem; font-weight:700; }
+.gtz-map__ship span { display:block; margin-top:2px; color:#6b7f77; font-size:.79rem; line-height:1.45; }
+.gtz-map__ship b { flex:none; color:var(--map-forest); font-size:.87rem; font-weight:700; white-space:nowrap; }
+.gtz-map__note,
+.gtz-map__ship-note { margin:0 0 22px; padding:11px 14px; border-radius:9px; background:#f3f6ef; color:var(--map-forest); font-size:.81rem; font-weight:600; line-height:1.5; }
 .gtz-map__actions { display:flex; flex-wrap:wrap; gap:9px; margin-top:auto; }
 .gtz-map__actions > * { flex:1 1 200px; }
 .gtz-map__btn { display:block; padding:13px 18px; border:1px solid var(--map-forest); border-radius:9px; background:var(--map-forest); color:#fff; font-size:.84rem; font-weight:800; letter-spacing:.02em; text-align:center; text-decoration:none; transition:background .17s ease; }
