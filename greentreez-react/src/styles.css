@@ -3456,3 +3456,329 @@ body.gtz-contact-page { background:#fff !important; color:#14251f; }
 .gtz-agegate__exit { display:inline-block; margin-top:16px; color:#6b7f77; font-size:.83rem; text-decoration:underline; }
 .gtz-agegate__exit:hover { color:#153a32; }
 .gtz-agegate__legal { margin:20px 0 0; color:#7a8b84; font-size:.72rem; line-height:1.55; }
+/* Contact Page */
+.gtz-contact-page .gtz-contact-main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 60px 24px;
+}
+
+.gtz-contact-form-section {
+  margin-bottom: 60px;
+}
+
+.gtz-contact-form-wrapper h1 {
+  font-family: 'Roboto Slab', Georgia, serif;
+  font-size: clamp(2rem, 4vw, 2.5rem);
+  font-weight: 700;
+  color: var(--gtz-forest);
+  letter-spacing: -.04em;
+  margin: 0 0 32px;
+}
+
+.gtz-contact-form {
+  max-width: 600px;
+}
+
+.gtz-form-group {
+  margin-bottom: 20px;
+}
+
+.gtz-form-group label {
+  display: block;
+  font-size: .9rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.gtz-form-group input,
+.gtz-form-group select,
+.gtz-form-group textarea {
+  width: 100%;
+  padding: 12px 14px;
+  font-family: Poppins, sans-serif;
+  font-size: .95rem;
+  color: #212121;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  transition: border-color .2s;
+}
+
+.gtz-form-group input:focus,
+.gtz-form-group select:focus,
+.gtz-form-group textarea:focus {
+  outline: none;
+  border-color: var(--gtz-forest);
+}
+
+.gtz-form-group textarea {
+  resize: vertical;
+}
+
+.gtz-form-success {
+  padding: 12px 16px;
+  background: #e4ebcf;
+  color: var(--gtz-forest);
+  font-size: .9rem;
+  font-weight: 600;
+  border-radius: 3px;
+  margin-bottom: 16px;
+}
+
+.gtz-form-submit {
+  padding: 14px 32px;
+  background: var(--gtz-forest);
+  color: #fff;
+  font-family: Poppins, sans-serif;
+  font-size: .88rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background .2s;
+}
+
+.gtz-form-submit:hover:not(:disabled) {
+  background: #0f2e27;
+}
+
+.gtz-form-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.gtz-locations-section h2 {
+  font-family: 'Roboto Slab', Georgia, serif;
+  font-size: clamp(1.8rem, 3.5vw, 2.2rem);
+  font-weight: 700;
+  color: var(--gtz-forest);
+  letter-spacing: -.04em;
+  margin: 0 0 28px;
+}
+
+.gtz-location-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 32px;
+}
+
+.gtz-location-card {
+  padding: 24px;
+  background: #fbfcf7;
+  border: 1px solid #e8ebe0;
+  border-radius: 3px;
+}
+
+.gtz-location-card h3 {
+  font-family: 'Roboto Slab', Georgia, serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--gtz-forest);
+  margin: 0 0 12px;
+}
+
+.gtz-location-address {
+  font-size: .95rem;
+  color: #555;
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
+.gtz-location-hours {
+  font-size: .88rem;
+  color: #666;
+  margin: 0 0 12px;
+  line-height: 1.6;
+}
+
+.gtz-location-hours strong {
+  color: var(--gtz-forest);
+}
+
+.gtz-location-phone {
+  margin: 0 0 16px;
+}
+
+.gtz-location-phone a {
+  display: inline-block;
+  font-size: .92rem;
+  font-weight: 600;
+  color: var(--gtz-forest);
+  text-decoration: none;
+  margin-right: 12px;
+}
+
+.gtz-location-phone a:hover {
+  text-decoration: underline;
+}
+
+.gtz-whatsapp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #25D366;
+  color: #fff !important;
+  border-radius: 3px;
+  font-size: .82rem !important;
+  transition: background .2s;
+}
+
+.gtz-whatsapp-btn:hover {
+  background: #1da851;
+  text-decoration: none !important;
+}
+
+.gtz-directions-link {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--gtz-forest);
+  text-decoration: none;
+}
+
+.gtz-directions-link:hover {
+  text-decoration: underline;
+}
+
+/* Homepage Map Section */
+.gtz-map-home-section {
+  padding-top: 90px;
+  padding-bottom: 90px;
+}
+
+.gtz-map-home-container {
+  display: grid;
+  grid-template-columns: .4fr .6fr;
+  gap: 48px;
+  align-items: center;
+}
+
+.gtz-map-home-info h3 {
+  font-family: 'Roboto Slab', Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--gtz-forest);
+  margin: 0 0 16px;
+}
+
+.gtz-map-address {
+  font-size: 1rem;
+  color: #555;
+  margin: 0 0 16px;
+  line-height: 1.6;
+}
+
+.gtz-map-hours {
+  font-size: .92rem;
+  color: #666;
+  margin: 0 0 16px;
+  line-height: 1.7;
+}
+
+.gtz-map-hours strong {
+  color: var(--gtz-forest);
+  font-weight: 600;
+}
+
+.gtz-map-phone {
+  margin: 0;
+}
+
+.gtz-map-phone a {
+  display: inline-block;
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--gtz-forest);
+  text-decoration: none;
+  margin-right: 12px;
+  margin-bottom: 8px;
+}
+
+.gtz-map-phone a:hover {
+  text-decoration: underline;
+}
+
+.gtz-map-whatsapp {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #25D366;
+  color: #fff !important;
+  border-radius: 3px;
+  font-size: .85rem !important;
+  transition: background .2s;
+}
+
+.gtz-map-whatsapp:hover {
+  background: #1da851;
+  text-decoration: none !important;
+}
+
+.gtz-map-home-embed {
+  width: 100%;
+  height: 420px;
+  position: relative;
+  border-radius: 3px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.gtz-map-home-embed iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+@media (max-width: 900px) {
+  .gtz-map-home-container {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .gtz-map-home-section {
+    padding-top: 70px;
+    padding-bottom: 70px;
+  }
+
+  .gtz-map-home-embed {
+    height: 360px;
+  }
+}
+
+@media (max-width: 600px) {
+  .gtz-contact-page .gtz-contact-main {
+    padding: 40px 16px;
+  }
+
+  .gtz-location-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .gtz-map-home-section {
+    padding-top: 50px;
+    padding-bottom: 50px;
+  }
+
+  .gtz-map-home-embed {
+    height: 300px;
+  }
+}
+
+/* Footer WhatsApp Link */
+.gtz-footer__whatsapp {
+  display: inline-flex;
+  align-items: center;
+  transition: opacity .2s ease;
+}
+
+.gtz-footer__whatsapp:hover {
+  opacity: 0.8;
+}

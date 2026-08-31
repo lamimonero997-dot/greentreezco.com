@@ -37,6 +37,7 @@ export default function App() {
         <Route path="/cart" element={<Navigate to="/checkout" replace />} />
         <Route path="/pages/contact-us" element={<ContactPage />} />
         <Route path="/pages/contact" element={<Navigate to="/pages/contact-us" replace />} />
+        <Route path="/contact" element={<Navigate to="/pages/contact-us" replace />} />
         <Route path="/pages/daily-deals" element={<SpecialDealsPage />} />
         <Route path="/pages/store-offers-discounts" element={<SpecialDealsPage />} />
         <Route path="*" element={<StorePage />} />
