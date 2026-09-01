@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useSiteContact, whatsappUrl } from '../lib/site.js';
+import { useSiteContact } from '../lib/site.js';
 
 const LOGO_SRC = '/cdn/shop/files/Green_Treez_Logo_Online_3c7e5760-a12d-437c-adcf-ef85dfd7fc8e_480x480.png';
 
@@ -34,9 +34,6 @@ export default function CompactFooter() {
           <Link className="gtz-compact-footer__newsletter" to="/collections/all-thc-and-cbd-products">Explore the shop <span>→</span></Link>
           <address className="gtz-compact-footer__contact">
             <a className="gtz-compact-footer__phone" href={contact.telHref}>{contact.phoneDisplay}</a>
-            <a className="gtz-compact-footer__whatsapp" href={whatsappUrl(contact.whatsappGreeting)} target="_blank" rel="noreferrer">
-              Chat on WhatsApp
-            </a>
             <a className="gtz-compact-footer__map" href={contact.mapUrl} target="_blank" rel="noreferrer">
               {contact.addressLines.map((line) => (
                 <span key={line}>{line}</span>

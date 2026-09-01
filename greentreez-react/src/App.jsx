@@ -1,7 +1,6 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import AgeGate from './components/AgeGate.jsx';
 import CartDrawer from './components/CartDrawer.jsx';
-import WhatsAppButton from './components/WhatsAppButton.jsx';
 import { useStoreNavigation } from './hooks/useStoreNavigation.js';
 import AdminApp from './pages/admin/AdminApp.jsx';
 import AdminCollections from './pages/admin/CollectionsHome.jsx';
@@ -44,7 +43,6 @@ export default function App() {
       </Routes>
       {isAdmin ? null : <AgeGate />}
       {isAdmin ? null : <CartDrawer />}
-      {isAdmin ? null : <WhatsAppButton />}
     </>
   );
 }

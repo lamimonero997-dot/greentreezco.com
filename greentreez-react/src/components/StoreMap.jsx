@@ -3,7 +3,75 @@ import { formatMoney } from '../lib/catalog/model.js';
 import { FREE_SHIPPING_THRESHOLD, SHIPPING_METHODS } from '../lib/catalog/shipping.js';
 import { useSiteContact, whatsappUrl } from '../lib/site.js';
 
-/** Store details: address, hours, and the ways to reach us. */
+const TESTIMONIALS = [
+  {
+    id: 1,
+    quote: 'Shipping was incredibly fast. Ordered in the evening and it was at my door the next day. Everything was packed perfectly, nothing damaged at all.',
+    author: 'Tyrick Handson',
+    rating: 4,
+  },
+  {
+    id: 2,
+    quote: 'The whole process was so easy from start to finish. Checkout took two minutes, shipping was quick, and the products were exactly as described.',
+    author: 'Adam Coldly',
+    rating: 4.5,
+  },
+  {
+    id: 3,
+    quote: 'Best online experience I have had. Super smooth ordering, fast delivery, and everything arrived in great condition. Will definitely order again.',
+    author: 'Mark Williams',
+    rating: 5,
+  },
+];
+
+/**
+ * Renders realistic star rating supporting full, half, and empty stars.
+ * rating can be e.g. 4, 4.5, 5
+ */
+function StarRating({ rating }) {
+  const total = 5;
+  const full  = Math.floor(rating);
+  const half  = rating % 1 >= 0.5 ? 1 : 0;
+  const empty = total - full - half;
+  const id    = `half-${rating}`.replace('.', '-');
+
+  return (
+    <span className="gtz-map-stars" aria-label={`${rating} out of 5 stars`}>
+      {/* SVG gradient definition for half star */}
+      <svg width="0" height="0" style={{ position: 'absolute' }}>
+        <defs>
+          <linearGradient id={id}>
+            <stop offset="50%" stopColor="#f59e0b" />
+            <stop offset="50%" stopColor="#d1d5db" />
+          </linearGradient>
+        </defs>
+      </svg>
+
+      {/* Full stars */}
+      {Array.from({ length: full }).map((_, i) => (
+        <svg key={`f${i}`} className="gtz-star gtz-star--full" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+        </svg>
+      ))}
+
+      {/* Half star */}
+      {half === 1 && (
+        <svg key="half" className="gtz-star gtz-star--half" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill={`url(#${id})`} d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+        </svg>
+      )}
+
+      {/* Empty stars */}
+      {Array.from({ length: empty }).map((_, i) => (
+        <svg key={`e${i}`} className="gtz-star gtz-star--empty" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+        </svg>
+      ))}
+    </span>
+  );
+}
+
+/** Store details card — left column */
 export function StoreDetailsCard({ contact }) {
   return (
     <div className="gtz-map__card">
@@ -26,9 +94,11 @@ export function StoreDetailsCard({ contact }) {
           </dd>
         </div>
         <div>
-          <dt>Email</dt>
+          <dt>WhatsApp</dt>
           <dd>
-            <a href={contact.mailtoHref}>{contact.email}</a>
+            <a href={whatsappUrl(contact.whatsappGreeting)} target="_blank" rel="noreferrer">
+              {contact.whatsappDisplay}
+            </a>
           </dd>
         </div>
       </dl>
@@ -36,14 +106,6 @@ export function StoreDetailsCard({ contact }) {
       <div className="gtz-map__actions">
         <a className="gtz-map__btn" href={contact.mapUrl} target="_blank" rel="noreferrer">
           Get directions
-        </a>
-        <a
-          className="gtz-map__btn gtz-map__btn--ghost"
-          href={whatsappUrl(contact.whatsappGreeting)}
-          target="_blank"
-          rel="noreferrer"
-        >
-          Chat on WhatsApp
         </a>
       </div>
     </div>
