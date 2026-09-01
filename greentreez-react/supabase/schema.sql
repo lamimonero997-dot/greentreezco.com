@@ -288,3 +288,29 @@ drop trigger if exists orders_price_check on public.orders;
 create trigger orders_price_check
 before insert on public.orders
 for each row execute function public.gtz_price_order();
+
+-- ---------------------------------------------------------------------------
+-- Product image storage
+--
+-- The admin uploads photos straight from a phone or a laptop; they are resized
+-- in the browser and land here. The bucket is public so the storefront can
+-- display them without a signed URL, but only admins may add or remove files.
+-- ---------------------------------------------------------------------------
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('product-images', 'product-images', true, 10485760, array['image/jpeg', 'image/png', 'image/webp'])
+on conflict (id) do update
+  set public = excluded.public,
+      file_size_limit = excluded.file_size_limit,
+      allowed_mime_types = excluded.allowed_mime_types;
+
+drop policy if exists product_images_read on storage.objects;
+drop policy if exists product_images_write on storage.objects;
+
+create policy product_images_read on storage.objects
+for select using (bucket_id = 'product-images');
+
+create policy product_images_write on storage.objects
+for all
+using (bucket_id = 'product-images' and public.is_admin())
+with check (bucket_id = 'product-images' and public.is_admin());

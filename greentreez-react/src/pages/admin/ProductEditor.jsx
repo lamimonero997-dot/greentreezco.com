@@ -14,6 +14,7 @@ import {
   slugify,
   STRAINS,
 } from '../../lib/catalog/model.js';
+import { ACCEPTED_TYPES, uploadProductImage } from '../../lib/catalog/images.js';
 import { deleteProduct, listCollections, listProducts, loadCatalog, saveProduct } from '../../lib/catalog/store.js';
 import { ConfirmDialog, Icon, ICONS, useNotify } from './ui.jsx';
 
@@ -47,6 +48,7 @@ export default function ProductEditor() {
   const [missing, setMissing] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     setMissing(false);
@@ -128,6 +130,37 @@ export default function ProductEditor() {
         imageIndex === index ? { ...image, ...partial } : image
       ),
     });
+  }
+
+  /**
+   * Takes files straight from the picker - on a phone that is the camera or the
+   * photo library - and appends them, or replaces one that is already there.
+   */
+  async function addFiles(fileList, replaceIndex = null) {
+    const files = [...(fileList || [])];
+    if (!files.length) return;
+    setUploading(true);
+    try {
+      const sources = [];
+      for (const file of files) {
+        sources.push(await uploadProductImage(file, product.id));
+      }
+      setProduct((current) => {
+        const images = [...(current.images || [])];
+        if (replaceIndex !== null && images[replaceIndex]) {
+          images[replaceIndex] = { ...images[replaceIndex], src: sources[0] };
+        } else {
+          for (const src of sources) images.push({ src, alt: current.title, position: images.length });
+        }
+        return { ...current, images: images.map((image, position) => ({ ...image, position })) };
+      });
+      setDirty(true);
+      notify?.(files.length > 1 ? `${files.length} images added` : 'Image added');
+    } catch (error) {
+      notify?.(error.message || 'Could not add that image', 'error');
+    } finally {
+      setUploading(false);
+    }
   }
 
   function moveImage(index, direction) {
@@ -307,6 +340,7 @@ export default function ProductEditor() {
             <h2>Product images</h2>
             <p className="gtz-admin__muted">
               The first image is the featured photo. Additional images appear as gallery shots on the product page.
+              Photos are resized for the web when you add them, so shooting straight from your phone is fine.
             </p>
             {!(product.images || []).length ? (
               <p className="gtz-admin__banner">
@@ -320,13 +354,17 @@ export default function ProductEditor() {
                   <div className="gtz-gallery__preview">
                     {image.src ? <img src={image.src} alt={image.alt || product.title} /> : <span>No preview</span>}
                   </div>
-                  <label className="gtz-field">
-                    <span>Image URL</span>
+                  <label className="gtz-upload gtz-upload--inline">
                     <input
-                      value={image.src}
-                      onChange={(event) => patchImage(index, { src: event.target.value })}
-                      placeholder="/cdn/shop/files/product.png"
+                      type="file"
+                      accept={ACCEPTED_TYPES}
+                      disabled={uploading}
+                      onChange={(event) => {
+                        addFiles(event.target.files, index);
+                        event.target.value = '';
+                      }}
                     />
+                    <span>{uploading ? 'Working…' : 'Replace photo'}</span>
                   </label>
                   <label className="gtz-field">
                     <span>Alt text</span>
@@ -369,18 +407,22 @@ export default function ProductEditor() {
                 </article>
               ))}
             </div>
-            <button
-              className="gtz-btn gtz-btn--ghost"
-              type="button"
-              onClick={() =>
-                patch({
-                  images: [...(product.images || []), { src: '', alt: product.title, position: product.images?.length || 0 }],
-                })
-              }
-            >
-              <Icon path={ICONS.add} size={15} />
-              Add gallery image
-            </button>
+            <label className="gtz-upload">
+              <input
+                type="file"
+                accept={ACCEPTED_TYPES}
+                multiple
+                disabled={uploading}
+                onChange={(event) => {
+                  addFiles(event.target.files);
+                  event.target.value = '';
+                }}
+              />
+              <span>
+                <Icon path={ICONS.add} size={15} />
+                {uploading ? 'Adding photos…' : (product.images || []).length ? 'Add more photos' : 'Add photos'}
+              </span>
+            </label>
           </section>
 
           <section className={`gtz-admin-card${errors.variants ? ' is-invalid' : ''}`}>

@@ -733,6 +733,64 @@ body.gtz-admin-page .gtz-admin-login {
   gap: 0.4rem;
 }
 
+/* A file input dressed as a button. The input itself stays in the layout for
+   keyboard focus, so it is hidden with opacity rather than display:none. */
+.gtz-upload {
+  position: relative;
+  display: inline-block;
+}
+
+.gtz-upload input[type='file'] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.gtz-upload input[type='file']:disabled {
+  cursor: not-allowed;
+}
+
+.gtz-upload > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.9rem;
+  border: 1px dashed #c3cad4;
+  border-radius: 0.5rem;
+  background: #fff;
+  color: var(--admin-ink);
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.gtz-upload input[type='file']:focus-visible + span {
+  outline: 2px solid var(--admin-lime);
+  outline-offset: 2px;
+}
+
+.gtz-upload:hover input[type='file']:not(:disabled) + span {
+  border-color: var(--admin-ink);
+  background: #f8f9fb;
+}
+
+.gtz-upload input[type='file']:disabled + span {
+  opacity: 0.55;
+}
+
+.gtz-upload--inline {
+  display: block;
+  margin-bottom: 0.6rem;
+}
+
+.gtz-upload--inline > span {
+  justify-content: center;
+  width: 100%;
+}
+
 .gtz-slug {
   display: flex;
   align-items: center;
