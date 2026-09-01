@@ -1484,7 +1484,7 @@ body.gtz-dynamic-product .gtz-accordion summary-icon .icon {
 
 /* Trust Badges / Info Section */
 body.gtz-dynamic-product .product-single__box__block--buttons::after {
-  content: "🔒 Secure Checkout  •  🚚 Free Shipping $99+  •  ✓ Lab Tested";
+  content: "🔒 Secure Checkout  •  🚚 Free Shipping $150+  •  ✓ Lab Tested";
   display: block;
   text-align: center;
   font-size: 0.75rem;

@@ -51,13 +51,17 @@ export default function ProductEditor() {
   useEffect(() => {
     setMissing(false);
     setDirty(false);
+    // A blank product needs nothing from the catalog, so show the form at once
+    // and let the collection list and handle check arrive behind it. Waiting on
+    // the full catalog first left "Add product" staring at a spinner.
+    if (isNew) setProduct(newProduct({ status: 'active' }));
+
+    let cancelled = false;
     Promise.all([loadCatalog(), listCollections(), listProducts()]).then(([catalog, nextCollections, nextProducts]) => {
+      if (cancelled) return;
       setCollections(nextCollections);
       setAllProducts(nextProducts);
-      if (isNew) {
-        setProduct(newProduct({ status: 'active' }));
-        return;
-      }
+      if (isNew) return;
       const found = catalog.products.find((item) => item.id === id);
       if (!found) {
         setMissing(true);
@@ -66,6 +70,9 @@ export default function ProductEditor() {
       }
       setProduct(normalizeLoaded(found));
     });
+    return () => {
+      cancelled = true;
+    };
   }, [id, isNew]);
 
   // Leaving with unsaved edits is the classic way to lose an afternoon's work.
@@ -138,14 +145,19 @@ export default function ProductEditor() {
     patch({ images: next.map((image, position) => ({ ...image, position })) });
   }
 
+  /** The product URL, derived from the title and nudged if it is already taken. */
+  function uniqueHandle() {
+    const base = slugify(product.handle || product.title) || `product-${Date.now()}`;
+    const taken = new Set(allProducts.filter((item) => item.id !== product.id).map((item) => item.handle));
+    if (!taken.has(base)) return base;
+    let suffix = 2;
+    while (taken.has(`${base}-${suffix}`)) suffix += 1;
+    return `${base}-${suffix}`;
+  }
+
   function validate() {
     const next = {};
-    const handle = slugify(product.handle || product.title);
     if (!product.title.trim()) next.title = 'Give the product a title';
-    if (!handle) next.handle = 'A URL slug is required';
-    else if (allProducts.some((item) => item.handle === handle && item.id !== product.id)) {
-      next.handle = 'Another product already uses this URL';
-    }
     if (!(product.variants || []).length) next.variants = 'Add at least one variant';
     else if (product.variants.some((variant) => !String(variant.title || '').trim())) {
       next.variants = 'Every variant needs an option name';
@@ -169,7 +181,7 @@ export default function ProductEditor() {
     try {
       const saved = await saveProduct({
         ...product,
-        handle: slugify(product.handle || product.title),
+        handle: uniqueHandle(),
         tags: parseList(product.tags),
         effects: parseList(product.effects),
         images: (product.images || []).filter((image) => image.src).map((image, position) => ({ ...image, position })),
@@ -221,7 +233,6 @@ export default function ProductEditor() {
     }
   }
 
-  const totalStock = (product.variants || []).reduce((sum, variant) => sum + Number(variant.inventory_quantity || 0), 0);
   const lowestPrice = Math.min(...[...(product.variants || []).map((variant) => Number(variant.price || 0)), Infinity]);
   const actionLabel = saving ? (isNew ? 'Publishing…' : 'Saving…') : isNew ? 'Publish' : dirty ? 'Save changes' : 'Saved';
 
@@ -376,24 +387,17 @@ export default function ProductEditor() {
             <div className="gtz-card-head">
               <h2>Variants</h2>
               <span className="gtz-admin__muted">
-                {totalStock} in stock · from {Number.isFinite(lowestPrice) ? formatMoney(lowestPrice) : '$0.00'}
+                from {Number.isFinite(lowestPrice) ? formatMoney(lowestPrice) : '$0.00'}
               </span>
             </div>
             {errors.variants ? <p className="gtz-error">{errors.variants}</p> : null}
             <div className="gtz-variant-head">
               <span>Option</span>
-              <span>SKU</span>
               <span>Price</span>
-              <span>Compare-at</span>
-              <span>Inventory</span>
               <span>Available</span>
               <span />
             </div>
             {(product.variants || []).map((variant, index) => {
-              const margin =
-                variant.compare_at_price && variant.price
-                  ? Math.round((1 - Number(variant.price) / Number(variant.compare_at_price)) * 100)
-                  : null;
               return (
                 <div className="gtz-variant-row" key={variant.id || index}>
                   <input
@@ -402,32 +406,9 @@ export default function ProductEditor() {
                     placeholder="Size"
                   />
                   <input
-                    value={variant.sku || ''}
-                    onChange={(event) => patchVariant(index, { sku: event.target.value })}
-                    placeholder="SKU"
-                  />
-                  <input
                     value={centsToDollars(variant.price)}
                     onChange={(event) => patchVariant(index, { price: dollarsToCents(event.target.value) })}
                     inputMode="decimal"
-                  />
-                  <input
-                    value={variant.compare_at_price ? centsToDollars(variant.compare_at_price) : ''}
-                    onChange={(event) =>
-                      patchVariant(index, {
-                        compare_at_price: event.target.value ? dollarsToCents(event.target.value) : null,
-                      })
-                    }
-                    placeholder={margin !== null ? `${margin}% off` : '—'}
-                    title={margin !== null ? `Shows as ${margin}% off on the storefront` : undefined}
-                  />
-                  <input
-                    type="number"
-                    min="0"
-                    value={variant.inventory_quantity ?? 0}
-                    onChange={(event) =>
-                      patchVariant(index, { inventory_quantity: Math.max(0, Number(event.target.value) || 0) })
-                    }
                   />
                   <label className="gtz-stock">
                     <span className="gtz-switch">
@@ -475,65 +456,6 @@ export default function ProductEditor() {
               <Icon path={ICONS.add} size={15} />
               Add variant
             </button>
-          </section>
-
-          <section className="gtz-admin-card">
-            <h2>Search engine listing</h2>
-            <p className="gtz-admin__muted">Controls the product URL and how this page appears in Google.</p>
-            <div className="gtz-seo-preview">
-              <div className="gtz-seo-preview__url">
-                {typeof window !== 'undefined' ? window.location.host : 'shop.local'} › products › {product.handle || 'slug'}
-              </div>
-              <div className="gtz-seo-preview__title">{product.seo_title || product.title || 'Product title'}</div>
-              <div className="gtz-seo-preview__desc">
-                {product.seo_description || product.excerpt || product.description || 'Meta description will show here.'}
-              </div>
-            </div>
-            <div className="gtz-admin__form-grid">
-              <label className={`gtz-field is-full${errors.handle ? ' is-invalid' : ''}`}>
-                <span>URL slug</span>
-                <div className="gtz-slug">
-                  <span>/products/</span>
-                  <input value={product.handle} onChange={(event) => patch({ handle: slugify(event.target.value) })} />
-                </div>
-                {errors.handle ? <em className="gtz-field__error">{errors.handle}</em> : null}
-              </label>
-              <label className="gtz-field is-full">
-                <span>
-                  SEO title{' '}
-                  <em className={(product.seo_title || '').length > 60 ? 'is-over' : ''}>
-                    {(product.seo_title || '').length}/60
-                  </em>
-                </span>
-                <input
-                  value={product.seo_title || ''}
-                  onChange={(event) => patch({ seo_title: event.target.value })}
-                  placeholder={product.title}
-                />
-              </label>
-              <label className="gtz-field is-full">
-                <span>
-                  Meta description{' '}
-                  <em className={(product.seo_description || '').length > 160 ? 'is-over' : ''}>
-                    {(product.seo_description || '').length}/160
-                  </em>
-                </span>
-                <textarea
-                  value={product.seo_description || ''}
-                  onChange={(event) => patch({ seo_description: event.target.value })}
-                  placeholder={product.excerpt || 'Write a clear summary for search results'}
-                  style={{ minHeight: '96px' }}
-                />
-              </label>
-              <label className="gtz-field is-full">
-                <span>Keywords</span>
-                <input
-                  value={typeof product.seo_keywords === 'string' ? product.seo_keywords : joinList(product.seo_keywords)}
-                  onChange={(event) => patch({ seo_keywords: event.target.value })}
-                  placeholder="THCa flower, hybrid, White Widow"
-                />
-              </label>
-            </div>
           </section>
         </div>
 
@@ -645,18 +567,6 @@ export default function ProductEditor() {
                 );
               })}
             </div>
-          </section>
-
-          <section className="gtz-admin-card">
-            <h2>Lab report</h2>
-            <label className="gtz-field">
-              <span>COA / lab report URL</span>
-              <input
-                value={product.lab_report_url || ''}
-                onChange={(event) => patch({ lab_report_url: event.target.value })}
-                placeholder="https://..."
-              />
-            </label>
           </section>
 
           <section className="gtz-admin-card">

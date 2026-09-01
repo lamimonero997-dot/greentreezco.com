@@ -108,15 +108,23 @@ function fallbackStoreResponse(url) {
 
 patchCustomElements();
 
-// Initialize cart store before loading theme scripts
-initThemeCart()
-  .catch((error) => console.warn('[cart] init failed', error))
-  .then(() => loadThemeScripts())
-  .catch((error) => console.warn('[theme] boot failed', error))
-  .then(() => {
-    createRoot(document.getElementById('root')).render(
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    );
-  });
+function render() {
+  createRoot(document.getElementById('root')).render(
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  );
+}
+
+// The admin renders its own UI and never touches the cloned theme, so booting
+// the storefront's scripts there only delays the dashboard.
+if (window.location.pathname.startsWith('/admin')) {
+  render();
+} else {
+  // Initialize cart store before loading theme scripts
+  initThemeCart()
+    .catch((error) => console.warn('[cart] init failed', error))
+    .then(() => loadThemeScripts())
+    .catch((error) => console.warn('[theme] boot failed', error))
+    .then(render);
+}

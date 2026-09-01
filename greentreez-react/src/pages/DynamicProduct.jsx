@@ -5,6 +5,7 @@ import ProductCard from '../components/ProductCard.jsx';
 import StoreShell from '../components/StoreShell.jsx';
 import { addLocalCartItem } from '../lib/catalog/cart.js';
 import { formatMoney, productAvailable, productImage } from '../lib/catalog/model.js';
+import { FREE_SHIPPING_THRESHOLD } from '../lib/catalog/shipping.js';
 import { getCachedCatalog, loadCatalog, productsForCollection } from '../lib/catalog/store.js';
 
 function Accordion({ title, children }) {
@@ -371,7 +372,10 @@ export default function DynamicProduct({ product }) {
                       </form>
 
                       <Accordion title="Shipping Information">
-                        <p>We ship nationwide. Most orders leave within 1–3 business days. Free shipping on orders $99+.</p>
+                        <p>
+                          We ship nationwide. Standard shipping is 3-5 business days and free on orders over{' '}
+                          {formatMoney(FREE_SHIPPING_THRESHOLD)}. Express and overnight are available at checkout.
+                        </p>
                       </Accordion>
                       <Accordion title="Frequently Asked Questions">
                         <div className="pdp-faqs__wrapper">
