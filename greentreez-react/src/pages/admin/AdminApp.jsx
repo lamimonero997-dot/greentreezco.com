@@ -4,9 +4,13 @@ import { catalogSource, listProducts, loadCatalog } from '../../lib/catalog/stor
 import {
   authMode,
   checkIsAdmin,
+  clearFailedAttempts,
   getSession,
   hasLocalSession,
+  LOCKOUT_MS,
+  lockoutState,
   onAuthChange,
+  registerFailedAttempt,
   sendPasswordReset,
   signIn,
   signInLocal,
@@ -19,6 +23,43 @@ import './admin.css';
 
 const LOGO_SRC = '/cdn/shop/files/Green_Treez_Logo_Online_49d74201-94de-44f4-984a-9f299aedc9ad.png';
 
+/** mm:ss for the lockout countdown. */
+function formatWait(ms) {
+  const seconds = Math.ceil(ms / 1000);
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+}
+
+/** Tracks the shared sign-in throttle and ticks the countdown while it is on. */
+function useLockout() {
+  const [gate, setGate] = useState(() => lockoutState());
+
+  useEffect(() => {
+    if (!gate.locked) return undefined;
+    const id = window.setInterval(() => setGate(lockoutState()), 500);
+    return () => window.clearInterval(id);
+  }, [gate.locked]);
+
+  return [gate, setGate];
+}
+
+function LockoutNotice({ gate }) {
+  if (gate.locked) {
+    return (
+      <p className="gtz-error" role="alert">
+        Too many failed attempts. Try again in {formatWait(gate.remainingMs)}.
+      </p>
+    );
+  }
+  if (!gate.fails) return null;
+  const left = gate.attemptsLeft;
+  const minutes = Math.round(LOCKOUT_MS / 60000);
+  return (
+    <p className="gtz-admin__muted" role="status">
+      {left} {left === 1 ? 'attempt' : 'attempts'} left before a {minutes} minute lockout.
+    </p>
+  );
+}
+
 /** Email + password against Supabase Auth; membership of public.admins decides access. */
 function SupabaseLogin({ onSignedIn }) {
   const [email, setEmail] = useState('');
@@ -26,10 +67,11 @@ function SupabaseLogin({ onSignedIn }) {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
+  const [gate, setGate] = useLockout();
 
   async function submit(event) {
     event.preventDefault();
-    if (busy) return;
+    if (busy || gate.locked) return;
     setBusy(true);
     setError('');
     setNotice('');
@@ -37,14 +79,20 @@ function SupabaseLogin({ onSignedIn }) {
       await signIn(email, password);
       if (!(await checkIsAdmin())) {
         await signOut();
+        setGate(registerFailedAttempt());
         setError('That account is not an admin for this shop.');
         return;
       }
       // The catalog may have been cached before sign-in, when RLS hid drafts.
+      clearFailedAttempts();
+      setGate(lockoutState());
       await loadCatalog(true);
       onSignedIn();
     } catch (signInError) {
-      setError(signInError.message || 'Could not sign in.');
+      const next = registerFailedAttempt();
+      setGate(next);
+      setPassword('');
+      setError(next.locked ? '' : signInError.message || 'Could not sign in.');
     } finally {
       setBusy(false);
     }
@@ -94,6 +142,7 @@ function SupabaseLogin({ onSignedIn }) {
             type="password"
             autoComplete="current-password"
             value={password}
+            disabled={gate.locked}
             onChange={(event) => {
               setPassword(event.target.value);
               setError('');
@@ -101,9 +150,10 @@ function SupabaseLogin({ onSignedIn }) {
           />
         </label>
         {error ? <p className="gtz-error">{error}</p> : null}
+        <LockoutNotice gate={gate} />
         {notice ? <p className="gtz-admin__banner is-ok">{notice}</p> : null}
-        <button type="submit" disabled={busy}>
-          {busy ? 'Signing in…' : 'Sign in'}
+        <button type="submit" disabled={busy || gate.locked}>
+          {gate.locked ? `Locked — ${formatWait(gate.remainingMs)}` : busy ? 'Signing in…' : 'Sign in'}
         </button>
         <button type="button" className="gtz-linkish gtz-admin__reset" onClick={reset}>
           Forgot your password?
@@ -117,14 +167,26 @@ function SupabaseLogin({ onSignedIn }) {
 function PasswordLogin({ onOk }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [gate, setGate] = useLockout();
 
-  function submit(event) {
+  async function submit(event) {
     event.preventDefault();
-    if (!signInLocal(password)) {
-      setError('That password does not match.');
-      return;
+    if (busy || gate.locked) return;
+    setBusy(true);
+    try {
+      const result = await signInLocal(password);
+      setGate(result);
+      if (!result.ok) {
+        setPassword('');
+        setError(result.locked ? '' : 'That password does not match.');
+        return;
+      }
+      setError('');
+      onOk();
+    } finally {
+      setBusy(false);
     }
-    onOk();
   }
 
   return (
@@ -142,7 +204,9 @@ function PasswordLogin({ onOk }) {
           <span>Password</span>
           <input
             type="password"
+            autoComplete="current-password"
             value={password}
+            disabled={gate.locked}
             onChange={(event) => {
               setPassword(event.target.value);
               setError('');
@@ -151,7 +215,10 @@ function PasswordLogin({ onOk }) {
           />
         </label>
         {error ? <p className="gtz-error">{error}</p> : null}
-        <button type="submit">Continue</button>
+        <LockoutNotice gate={gate} />
+        <button type="submit" disabled={busy || gate.locked}>
+          {gate.locked ? `Locked — ${formatWait(gate.remainingMs)}` : busy ? 'Checking…' : 'Continue'}
+        </button>
       </form>
     </div>
   );
