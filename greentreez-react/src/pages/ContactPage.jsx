@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import StoreMap from '../components/StoreMap.jsx';
 import StoreShell from '../components/StoreShell.jsx';
+import { emailConfigured, sendContactEmail } from '../lib/email.js';
 import { useSiteContact, whatsappUrl } from '../lib/site.js';
 
 const TOPICS = [
@@ -28,6 +29,7 @@ export default function ContactPage() {
   const contact = useSiteContact();
   const [form, setForm] = useState(EMPTY);
   const [errors, setErrors] = useState({});
+  const [status, setStatus] = useState({ state: 'idle', message: '' });
 
   useEffect(() => {
     document.title = `Contact ${contact.storeName}`;
@@ -38,19 +40,20 @@ export default function ContactPage() {
   const set = (name) => (event) => {
     setForm((current) => ({ ...current, [name]: event.target.value }));
     setErrors((current) => (current[name] ? { ...current, [name]: '' } : current));
+    setStatus((current) => (current.state === 'idle' ? current : { state: 'idle', message: '' }));
   };
 
-  function onSubmit(event) {
-    event.preventDefault();
+  function validate() {
     const next = {};
     if (!form.name.trim()) next.name = 'Required';
     if (!form.message.trim()) next.message = 'Tell us how we can help';
     if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) next.email = 'Enter a valid email';
     setErrors(next);
-    if (Object.keys(next).length) return;
+    return Object.keys(next).length === 0;
+  }
 
-    // The shop is run over WhatsApp, so the form opens a pre-filled chat rather
-    // than posting to a mailbox nobody watches.
+  /** The same message as a WhatsApp chat, used as the fallback route. */
+  function whatsappMessage() {
     const lines = [
       `Hi ${contact.storeName}, I have a question.`,
       '',
@@ -61,8 +64,45 @@ export default function ContactPage() {
       '',
       form.message.trim(),
     ].filter((line) => line !== null);
+    return lines.join('\n');
+  }
 
-    window.open(whatsappUrl(lines.join('\n')), '_blank', 'noopener');
+  function openWhatsapp() {
+    if (!validate()) return;
+    window.open(whatsappUrl(whatsappMessage()), '_blank', 'noopener');
+  }
+
+  async function onSubmit(event) {
+    event.preventDefault();
+    if (status.state === 'sending') return;
+    if (!validate()) return;
+
+    // With no mail service configured the shop still runs on WhatsApp, so the
+    // form keeps its original behaviour rather than silently doing nothing.
+    if (!emailConfigured()) {
+      window.open(whatsappUrl(whatsappMessage()), '_blank', 'noopener');
+      return;
+    }
+
+    setStatus({ state: 'sending', message: '' });
+    const result = await sendContactEmail({
+      name: form.name.trim(),
+      phone: form.phone.trim(),
+      email: form.email.trim(),
+      topic: form.topic,
+      message: form.message.trim(),
+    });
+
+    if (result.ok) {
+      setForm(EMPTY);
+      setStatus({ state: 'sent', message: 'Thanks - your message is on its way. We usually reply the same day.' });
+      return;
+    }
+
+    setStatus({
+      state: 'error',
+      message: 'That did not send. Please try again, or send it to us on WhatsApp instead.',
+    });
   }
 
   const channels = [
@@ -160,7 +200,9 @@ export default function ContactPage() {
           <form className="gtz-contact__form" onSubmit={onSubmit} noValidate>
             <h2>Send us a message</h2>
             <p className="gtz-contact__form-note">
-              Fill this in and we will open WhatsApp with your message ready to send to {contact.whatsappDisplay}.
+              {emailConfigured()
+                ? `This goes straight to ${contact.email}. Prefer to chat? Use the WhatsApp button below the form.`
+                : `Fill this in and we will open WhatsApp with your message ready to send to ${contact.whatsappDisplay}.`}
             </p>
             <div className="gtz-contact__grid">
               <Field label="Your name" error={errors.name}>
@@ -183,9 +225,28 @@ export default function ContactPage() {
                 <textarea rows="5" value={form.message} onChange={set('message')} />
               </Field>
             </div>
-            <button type="submit" className="gtz-contact__submit">
-              Send on WhatsApp
-            </button>
+            {status.message ? (
+              <p
+                className={`gtz-contact__status is-${status.state}`}
+                role={status.state === 'error' ? 'alert' : 'status'}
+              >
+                {status.message}
+              </p>
+            ) : null}
+            <div className="gtz-contact__actions">
+              <button type="submit" className="gtz-contact__submit" disabled={status.state === 'sending'}>
+                {!emailConfigured()
+                  ? 'Send on WhatsApp'
+                  : status.state === 'sending'
+                    ? 'Sending…'
+                    : 'Send message'}
+              </button>
+              {emailConfigured() ? (
+                <button type="button" className="gtz-contact__alt" onClick={openWhatsapp}>
+                  Send on WhatsApp instead
+                </button>
+              ) : null}
+            </div>
             <p className="gtz-contact__legal">
               We only use your details to answer this message. Nothing is stored on this page.
             </p>

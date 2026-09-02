@@ -94,7 +94,6 @@ const LOCATION_NAV_LABELS = new Set(['shop by location', 'locations', 'store loc
 // Cloned pages carry the original storefront's contact details; rewrite every one
 // of them to whatever the shop owner has saved so the site never shows a stale
 // number. Read at call time, not module load, so admin edits take effect.
-const DEMO_EMAIL = 'hello@example.com';
 const PHONE_RE = /\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}/g;
 const ORIGINAL_HOST_RE = /^https?:\/\/(?:www\.)?greentreezcompany\.com/i;
 const SOCIAL_HOST_RE = /(?:facebook|instagram|twitter|tiktok|youtube|pinterest|linkedin)\.com|(?:^|\.)x\.com/i;
@@ -175,7 +174,7 @@ export function sanitizePageMeta(page) {
 
 export function sanitizeHtml(html) {
   if (!html) return html;
-  const { phoneDisplay: DEMO_PHONE, telHref: DEMO_TEL, mapUrl: SITE_MAP_URL } = siteContact();
+  const { phoneDisplay: DEMO_PHONE, telHref: DEMO_TEL, mapUrl: SITE_MAP_URL, email: SHOP_EMAIL } = siteContact();
 
   let out = html
     .replace(/<!--\s*BEGIN app block:[\s\S]*?<!--\s*END app block\s*-->/gi, '')
@@ -201,7 +200,7 @@ export function sanitizeHtml(html) {
       if (/^<script/i.test(part)) return part;
       return part
         .replace(/href=(["'])(?:https?:)?\/\/(?:www\.)?greentreezcompany\.com([^"']*)\1/gi, (_, quote, path) => `href=${quote}${path || '/'}${quote}`)
-        .replace(/info@greentreezcompany\.com/gi, DEMO_EMAIL)
+        .replace(/info@greentreezcompany\.com/gi, SHOP_EMAIL)
         .replace(/href=(["'])tel:[^"']+\1/gi, `href=$1${DEMO_TEL}$1`)
         .replace(PHONE_RE, DEMO_PHONE)
         .replace(
@@ -282,7 +281,7 @@ function stripLocationSections(root) {
 }
 
 function rewriteContactAndOutboundLinks(root) {
-  const { phoneDisplay: DEMO_PHONE, telHref: DEMO_TEL, mapUrl: SITE_MAP_URL } = siteContact();
+  const { phoneDisplay: DEMO_PHONE, telHref: DEMO_TEL, mapUrl: SITE_MAP_URL, email: SHOP_EMAIL } = siteContact();
   root.querySelectorAll('a[href]').forEach((link) => {
     const href = link.getAttribute('href') || '';
     const isSocial =
@@ -332,8 +331,8 @@ function rewriteContactAndOutboundLinks(root) {
     }
 
     if (/^mailto:/i.test(href)) {
-      link.setAttribute('href', `mailto:${DEMO_EMAIL}`);
-      if (/@/.test(link.textContent || '')) link.textContent = DEMO_EMAIL;
+      link.setAttribute('href', `mailto:${SHOP_EMAIL}`);
+      if (/@/.test(link.textContent || '')) link.textContent = SHOP_EMAIL;
       return;
     }
 
@@ -436,7 +435,7 @@ function tidyFooter(root) {
   const grid = document.createElement('div');
   grid.className = 'gtz-footer__grid';
 
-  const { phoneDisplay, telHref, mapUrl, addressLines, storeName } = siteContact();
+  const { phoneDisplay, telHref, mapUrl, addressLines, storeName, email } = siteContact();
 
   const brand = document.createElement('div');
   brand.className = 'gtz-footer__col gtz-footer__brand';
@@ -445,7 +444,7 @@ function tidyFooter(root) {
     <p class="gtz-footer__blurb">Legal THC and CBD products, shipped to your door. Must be 21 or older to purchase.</p>
     <ul class="gtz-footer__contact o-list-bare">
       <li><a href="${telHref}">${phoneDisplay}</a></li>
-      <li><a href="mailto:${DEMO_EMAIL}">${DEMO_EMAIL}</a></li>
+      <li><a href="mailto:${email}">${email}</a></li>
       <li><a class="gtz-footer__address" href="${mapUrl}" target="_blank" rel="noreferrer">${addressLines
         .map((line) => `<span>${line}</span>`)
         .join('')}</a></li>

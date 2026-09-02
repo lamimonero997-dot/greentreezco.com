@@ -5,6 +5,7 @@ import StoreShell from '../components/StoreShell.jsx';
 import { clearLocalCart, localCartTotal, readLocalCart, updateLocalCartItem } from '../lib/catalog/cart.js';
 import { formatMoney } from '../lib/catalog/model.js';
 import { createOrder, newOrderReference } from '../lib/catalog/orders.js';
+import { sendOrderEmail } from '../lib/email.js';
 import {
   DEFAULT_SHIPPING_ID,
   SHIPPING_METHODS,
@@ -207,6 +208,31 @@ export default function CheckoutPage() {
       })),
       subtotal,
       total,
+    });
+
+    // A copy to the shop inbox, so an order is still on record if the customer
+    // never finishes the WhatsApp conversation. Sent with keepalive rather than
+    // awaited: the redirect below must not wait on a mail service.
+    sendOrderEmail({
+      reference,
+      customer: {
+        name: `${form.firstName} ${form.lastName}`.trim(),
+        phone: form.phone,
+        email: form.email.trim(),
+      },
+      fulfillment: {
+        method: shipping.label,
+        eta: shipping.eta,
+        address: shipping.requiresAddress
+          ? [form.address, form.apartment, `${form.city}, ${form.region} ${form.postalCode}`]
+              .filter(Boolean)
+              .join(', ')
+          : `Pickup at ${contact.addressOneLine}`,
+      },
+      payment: payment.label,
+      items: cart.items,
+      money: { subtotal, shipping: shippingCost, total },
+      notes: form.notes.trim(),
     });
 
     clearLocalCart();

@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 // so the site renders correctly before anything has been saved.
 // Bumped when a default must reach browsers that already cached the old value:
 // v2 moves WhatsApp onto its own number, separate from the number we take calls on.
-const KEY = 'gtz-site-settings-v2';
+// v3 sets the real shop inbox, replacing the hello@example.com placeholder.
+const KEY = 'gtz-site-settings-v3';
 const EVENT = 'gtz-settings-change';
 
 export const DEFAULT_SETTINGS = {
@@ -13,7 +14,7 @@ export const DEFAULT_SETTINGS = {
   phoneE164: '+15103942813',
   whatsappNumber: '14133580385',
   whatsappDisplay: '(413) 358-0385',
-  email: 'hello@example.com',
+  email: 'info@greentreezco.com',
   addressStreet: '850 Hillwood Blvd Ste 7',
   addressCity: 'Nashville',
   addressRegion: 'TN',
