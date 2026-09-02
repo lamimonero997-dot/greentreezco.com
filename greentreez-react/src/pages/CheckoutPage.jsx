@@ -26,6 +26,10 @@ const PAYMENT_METHODS = [
   { id: 'cash', label: 'Cash on delivery or pickup', note: 'Pay when you receive your order' },
 ];
 
+// How long checkout will wait for the order email before handing the customer
+// over to WhatsApp regardless.
+const MAIL_WAIT_MS = 4000;
+
 const EMPTY_FORM = {
   firstName: '',
   lastName: '',
@@ -210,10 +214,13 @@ export default function CheckoutPage() {
       total,
     });
 
-    // A copy to the shop inbox, so an order is still on record if the customer
-    // never finishes the WhatsApp conversation. Sent with keepalive rather than
-    // awaited: the redirect below must not wait on a mail service.
-    sendOrderEmail({
+    // Every order goes to both channels: the shop inbox and WhatsApp. The email
+    // is what survives if the customer never finishes the WhatsApp conversation,
+    // so it is awaited rather than fired blind - a request cancelled by the
+    // redirect below may never reach the mail service. `keepalive` is still set
+    // as a safety net, and the wait is capped so a slow or unreachable mail
+    // service can only ever add a few seconds to checkout, never block it.
+    const mailed = sendOrderEmail({
       reference,
       customer: {
         name: `${form.firstName} ${form.lastName}`.trim(),
@@ -234,6 +241,8 @@ export default function CheckoutPage() {
       money: { subtotal, shipping: shippingCost, total },
       notes: form.notes.trim(),
     });
+
+    await Promise.race([mailed, new Promise((resolve) => setTimeout(resolve, MAIL_WAIT_MS))]);
 
     clearLocalCart();
     window.location.href = url;

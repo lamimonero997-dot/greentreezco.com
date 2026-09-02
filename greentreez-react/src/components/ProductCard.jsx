@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { addLocalCartItem } from '../lib/catalog/cart.js';
 import { formatMoney, productImage, productPrice } from '../lib/catalog/model.js';
 
-export default function ProductCard({ product }) {
+export default function ProductCard({ product, priority = false }) {
   const href = `/products/${product.handle}`;
   const image = productImage(product);
   const [imageError, setImageError] = useState(false);
@@ -35,7 +35,9 @@ export default function ProductCard({ product }) {
                       alt={product.title}
                       width="300"
                       height="300"
-                      loading="lazy"
+                      loading={priority ? 'eager' : 'lazy'}
+                      fetchPriority={priority ? 'high' : 'auto'}
+                      decoding="async"
                       onError={() => setImageError(true)}
                     />
                   ) : (
