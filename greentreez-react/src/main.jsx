@@ -49,6 +49,11 @@ function quiet(event) {
 window.addEventListener('error', quiet);
 window.addEventListener('unhandledrejection', quiet);
 
+// Requests the imported theme scripts make, which get a stub response rather
+// than being allowed to fail loudly. Anything else - our own API calls included
+// - must see the real outcome.
+const STORE_REQUEST_RE = /view=quick-shop|\/cart\/|\.js(\?|$)|section_id=|sections=|\/search\/suggest/;
+
 const nativeFetch = window.fetch.bind(window);
 window.fetch = async (input, init) => {
   const url = typeof input === 'string' ? input : input?.url || '';
@@ -59,12 +64,14 @@ window.fetch = async (input, init) => {
   try {
     const response = await nativeFetch(input, init);
     if (response.ok) return response;
-    if (!/view=quick-shop|\/cart\/|\.js(\?|$)|section_id=|sections=|\/search\/suggest/.test(url)) {
-      return response;
-    }
+    if (!STORE_REQUEST_RE.test(url)) return response;
     console.warn('[store] request failed', url, response.status);
     return fallbackStoreResponse(url);
   } catch (error) {
+    // Only the theme's own requests get a stub. Substituting one for, say, a
+    // failed contact-form send would report success for a message that never
+    // left the browser, so every other caller gets the real error.
+    if (!STORE_REQUEST_RE.test(url)) throw error;
     console.warn('[store] request error', url, error);
     return fallbackStoreResponse(url);
   }

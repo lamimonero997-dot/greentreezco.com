@@ -3,17 +3,25 @@
  *
  * The site is a static bundle with no server of its own, so mail goes through
  * Web3Forms: a POST carrying an access key, which their service delivers to the
- * address that key was registered to. Set VITE_WEB3FORMS_KEY to switch it on -
- * without it every send is skipped and the caller falls back to WhatsApp, which
- * is how the shop already runs.
+ * address that key was registered to - info@greentreezco.com.
  *
- * The access key is meant to live in client code; it only authorises delivery
- * to that one fixed inbox, so it cannot be used to send mail anywhere else.
+ * The key sits here rather than in a .env file because .env is gitignored,
+ * which would leave every deployment built from this repo unable to send. That
+ * is safe: a Web3Forms access key is built for client code, it is compiled into
+ * the bundle either way, and it only authorises delivery to that one fixed
+ * inbox - it cannot be used to send mail anywhere else. Set VITE_WEB3FORMS_KEY
+ * to override it.
  */
+const DEFAULT_ACCESS_KEY = '1930565f-5d64-477b-83af-7a7bcbdbad83';
+
 const ENDPOINT = import.meta.env.VITE_EMAIL_ENDPOINT || 'https://api.web3forms.com/submit';
 
+function accessKey() {
+  return import.meta.env.VITE_WEB3FORMS_KEY || DEFAULT_ACCESS_KEY;
+}
+
 export function emailConfigured() {
-  return Boolean(import.meta.env.VITE_WEB3FORMS_KEY);
+  return Boolean(accessKey());
 }
 
 /** Where mail is delivered, for the copy shown next to the form. */
@@ -31,7 +39,7 @@ async function send(payload, { keepalive = false } = {}) {
   if (!emailConfigured()) return { ok: false, skipped: true };
 
   const body = JSON.stringify({
-    access_key: import.meta.env.VITE_WEB3FORMS_KEY,
+    access_key: accessKey(),
     ...payload,
   });
 
@@ -42,9 +50,11 @@ async function send(payload, { keepalive = false } = {}) {
       body,
       keepalive,
     });
-    const result = await response.json().catch(() => ({}));
-    if (!response.ok || result.success === false) {
-      return { ok: false, error: result.message || `Mail service returned ${response.status}` };
+    const result = await response.json().catch(() => null);
+    // Insist on the service's own success flag. Treating "not an explicit
+    // failure" as success once let a stubbed response read as a sent message.
+    if (!response.ok || result?.success !== true) {
+      return { ok: false, error: result?.message || `Mail service returned ${response.status}` };
     }
     return { ok: true };
   } catch (error) {
