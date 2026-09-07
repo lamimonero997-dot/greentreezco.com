@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import ProductCard from '../components/ProductCard.jsx';
 import StoreShell from '../components/StoreShell.jsx';
 import { loadCatalog } from '../lib/catalog/store.js';
+import { updateSEO } from '../lib/seo.js';
 
 const DEAL_GROUPS = [
   { handle: 'edibles', label: 'Edibles', copy: 'Flavor-forward THC treats for your next night in.' },
@@ -15,7 +16,15 @@ export default function SpecialDealsPage() {
 
   useEffect(() => {
     document.body.className = 'gtz-specials-page js-theme-loaded';
-    document.title = 'Specials & Deals | Green Treez';
+    updateSEO({
+      title:       'Specials & Deals | Green Treez — Nashville THC & CBD',
+      description: 'Browse current deals on hemp-derived THC and CBD products at Green Treez Company, Nashville TN. Edibles, THCA flower, vapes, and more — lab tested.',
+      canonical:   '/pages/daily-deals',
+      breadcrumbs: [
+        { name: 'Home', path: '/' },
+        { name: 'Specials & Deals', path: '/pages/daily-deals' },
+      ],
+    });
     loadCatalog().then(setCatalog).catch(() => setCatalog({ products: [], collections: [] }));
   }, []);
 

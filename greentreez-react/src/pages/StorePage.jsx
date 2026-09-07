@@ -9,6 +9,7 @@ import { runInjectedScripts } from '../lib/runScripts.js';
 import { canonicalProductPath, enableProductGallery, isLocationRoute, sanitizeHtml, sanitizePageMeta, stripClonedWidgets } from '../lib/sanitize.js';
 import { reinitTheme } from '../lib/theme.js';
 import { enableNavbarHover } from '../lib/navbarHover.js';
+import { updateSEO } from '../lib/seo.js';
 import DynamicCollection from './DynamicCollection.jsx';
 import DynamicProduct from './DynamicProduct.jsx';
 import StoreMap from '../components/StoreMap.jsx';
@@ -24,23 +25,18 @@ function applyBodyAttrs(attrs) {
 }
 
 function setMeta(page) {
+  updateSEO({
+    title:       page.title || '',
+    description: page.description || '',
+    keywords:    page.keywords || '',
+    canonical:   page.canonical || '',
+    image:       page.image || '',
+    type:        page.type || 'website',
+    product:     page.product || null,
+    breadcrumbs: page.breadcrumbs || null,
+  });
+  // Keep legacy imperative title for cloned Shopify pages that pass only title
   if (page.title) document.title = page.title;
-  let meta = document.querySelector('meta[name="description"]');
-  if (!meta) {
-    meta = document.createElement('meta');
-    meta.setAttribute('name', 'description');
-    document.head.appendChild(meta);
-  }
-  meta.setAttribute('content', page.description || '');
-  let keywords = document.querySelector('meta[name="keywords"]');
-  if (page.keywords) {
-    if (!keywords) {
-      keywords = document.createElement('meta');
-      keywords.setAttribute('name', 'keywords');
-      document.head.appendChild(keywords);
-    }
-    keywords.setAttribute('content', page.keywords);
-  }
 }
 
 export default function StorePage() {
@@ -158,6 +154,15 @@ export default function StorePage() {
               title: product.seo_title || `${product.title} | Green Treez`,
               description: product.seo_description || product.excerpt || product.description,
               keywords: product.seo_keywords || '',
+              canonical: `/products/${product.handle}`,
+              image: product.images?.[0]?.src || '',
+              type: 'product',
+              product,
+              breadcrumbs: [
+                { name: 'Home', path: '/' },
+                { name: 'All Products', path: '/collections/all-thc-and-cbd-products' },
+                { name: product.title, path: `/products/${product.handle}` },
+              ],
             });
             window.scrollTo(0, 0);
             return;
@@ -174,7 +179,16 @@ export default function StorePage() {
               id: collection.handle,
               'data-heading-border': 'true',
             });
-            setMeta({ title: collection.title, description: collection.description });
+            setMeta({
+              title: `${collection.title} | Green Treez`,
+              description: collection.description || `Shop ${collection.title} at Green Treez Company — Nashville's premium hemp-derived THC and CBD store.`,
+              canonical: `/collections/${collection.handle}`,
+              type: 'website',
+              breadcrumbs: [
+                { name: 'Home', path: '/' },
+                { name: collection.title, path: `/collections/${collection.handle}` },
+              ],
+            });
             window.scrollTo(0, 0);
             return;
           }

@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# Keep admin, checkout, and cart out of search indexes
+Disallow: /admin/
+Disallow: /checkout
+Disallow: /cart
+
+# Block internal API/data paths
+Disallow: /cdn/shop/t/
+Disallow: /pages/*.json
+
+# Sitemap location
+Sitemap: https://greentreezcompany.com/sitemap.xml

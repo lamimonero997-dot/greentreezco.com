@@ -15,6 +15,7 @@ import {
   shippingPriceLabel,
 } from '../lib/catalog/shipping.js';
 import { useSiteContact } from '../lib/site.js';
+import { setNoIndex } from '../lib/seo.js';
 
 const PAYMENT_METHODS = [
   { id: 'card', label: 'Credit / debit card', note: 'Visa, Mastercard, Amex. Secure link sent after order is confirmed' },
@@ -71,7 +72,7 @@ export default function CheckoutPage() {
   }, []);
 
   useEffect(() => {
-    document.title = 'Secure checkout | Green Treez Company';
+    setNoIndex('Secure checkout | Green Treez Company');
     document.body.setAttribute('class', 'template-page gtz-checkout-page js-theme-loaded');
     window.scrollTo(0, 0);
   }, []);

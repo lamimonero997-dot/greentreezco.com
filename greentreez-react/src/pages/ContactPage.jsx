@@ -4,6 +4,7 @@ import StoreMap from '../components/StoreMap.jsx';
 import StoreShell from '../components/StoreShell.jsx';
 import { emailConfigured, sendContactEmail } from '../lib/email.js';
 import { useSiteContact, whatsappUrl } from '../lib/site.js';
+import { updateSEO } from '../lib/seo.js';
 
 const TOPICS = [
   'Order status',
@@ -32,10 +33,18 @@ export default function ContactPage() {
   const [status, setStatus] = useState({ state: 'idle', message: '' });
 
   useEffect(() => {
-    document.title = `Contact ${contact.storeName}`;
+    updateSEO({
+      title:       `Contact ${contact.storeName} | Nashville THC & CBD Store`,
+      description: `Get in touch with Green Treez Company in Nashville, TN. Call, email, or visit us at ${contact.addressOneLine}. Open ${contact.hours}.`,
+      canonical:   '/pages/contact-us',
+      breadcrumbs: [
+        { name: 'Home', path: '/' },
+        { name: 'Contact', path: '/pages/contact-us' },
+      ],
+    });
     document.body.setAttribute('class', 'template-page gtz-contact-page js-theme-loaded');
     window.scrollTo(0, 0);
-  }, [contact.storeName]);
+  }, [contact.storeName, contact.addressOneLine, contact.hours]);
 
   const set = (name) => (event) => {
     setForm((current) => ({ ...current, [name]: event.target.value }));

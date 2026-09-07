@@ -9,7 +9,8 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "catalog:extract": "node scripts/extract-catalog.mjs",
-    "catalog:seed": "node scripts/seed-supabase.mjs"
+    "catalog:seed": "node scripts/seed-supabase.mjs",
+    "sitemap": "node scripts/generate-sitemap.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.4",

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import ProductCard from '../components/ProductCard.jsx';
 import StoreShell from '../components/StoreShell.jsx';
 import { productsForCollection } from '../lib/catalog/store.js';
+import { updateSEO } from '../lib/seo.js';
 
 // The full catalog is over 1700 products. Rendering every card at once left the
 // browser with more than 1600 lazy images queued at the same time, and it simply
@@ -29,7 +30,16 @@ export default function DynamicCollection({ collection, catalog }) {
 
   useEffect(() => {
     document.body.className = 'template-collection gtz-dynamic-collection js-theme-loaded';
-    document.title = `${collection.title} | Green Treez`;
+    updateSEO({
+      title:       `${collection.title} | Green Treez`,
+      description: collection.description || `Shop ${collection.title} at Green Treez Company — Nashville's premium hemp-derived THC and CBD store.`,
+      canonical:   `/collections/${collection.handle}`,
+      type:        'website',
+      breadcrumbs: [
+        { name: 'Home', path: '/' },
+        { name: collection.title, path: `/collections/${collection.handle}` },
+      ],
+    });
   }, [collection]);
 
   // Reveal the next page as the shopper approaches the end of the current one.

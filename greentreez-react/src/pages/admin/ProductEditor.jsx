@@ -612,6 +612,52 @@ export default function ProductEditor() {
           </section>
 
           <section className="gtz-admin-card">
+            <h2>SEO</h2>
+            <p className="gtz-admin__muted">
+              Leave blank to use the product title and short description as defaults. These values appear in Google
+              search results and social sharing previews.
+            </p>
+            <div className="gtz-admin-stack">
+              <label className="gtz-field">
+                <span>
+                  SEO title <em>{(product.seo_title || '').length}/70 chars</em>
+                </span>
+                <input
+                  value={product.seo_title || ''}
+                  onChange={(event) => patch({ seo_title: event.target.value })}
+                  placeholder={`${product.title} | Green Treez`}
+                  maxLength={70}
+                />
+              </label>
+              <label className="gtz-field">
+                <span>
+                  Meta description <em>{(product.seo_description || '').length}/155 chars</em>
+                </span>
+                <textarea
+                  value={product.seo_description || ''}
+                  onChange={(event) => patch({ seo_description: event.target.value })}
+                  placeholder={product.excerpt || 'Brief description for Google search results…'}
+                  maxLength={155}
+                  style={{ minHeight: '72px' }}
+                />
+              </label>
+              <label className="gtz-field">
+                <span>Keywords (optional)</span>
+                <input
+                  value={product.seo_keywords || ''}
+                  onChange={(event) => patch({ seo_keywords: event.target.value })}
+                  placeholder="THCA flower Nashville, buy delta-9 edibles TN"
+                />
+              </label>
+              {product.handle ? (
+                <p className="gtz-admin__muted" style={{ fontSize: '0.8rem' }}>
+                  <b>Preview URL:</b> https://greentreezcompany.com/products/{product.handle}
+                </p>
+              ) : null}
+            </div>
+          </section>
+
+          <section className="gtz-admin-card">
             <h2>Collections</h2>
             <p className="gtz-admin__muted">{(product.collection_handles || []).length} selected</p>
             <label className="gtz-field">

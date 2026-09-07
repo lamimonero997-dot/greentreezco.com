@@ -7,6 +7,7 @@ import { addLocalCartItem } from '../lib/catalog/cart.js';
 import { formatMoney, productAvailable, productImage } from '../lib/catalog/model.js';
 import { FREE_SHIPPING_THRESHOLD } from '../lib/catalog/shipping.js';
 import { getCachedCatalog, loadCatalog, productsForCollection } from '../lib/catalog/store.js';
+import { updateSEO } from '../lib/seo.js';
 
 function Accordion({ title, children }) {
   return (
@@ -106,7 +107,20 @@ export default function DynamicProduct({ product }) {
 
   useEffect(() => {
     document.body.className = 'template-product gtz-dynamic-product js-theme-loaded';
-    document.title = product.seo_title || `${product.title} | Green Treez`;
+    updateSEO({
+      title:       product.seo_title || `${product.title} | Green Treez`,
+      description: product.seo_description || product.excerpt || product.description || '',
+      keywords:    product.seo_keywords || '',
+      canonical:   `/products/${product.handle}`,
+      image:       product.images?.[0]?.src || '',
+      type:        'product',
+      product,
+      breadcrumbs: [
+        { name: 'Home', path: '/' },
+        { name: 'All Products', path: '/collections/all-thc-and-cbd-products' },
+        { name: product.title, path: `/products/${product.handle}` },
+      ],
+    });
     setVariantId(product.variants?.[0]?.id || '');
     setQty(1);
     setAdded(false);
