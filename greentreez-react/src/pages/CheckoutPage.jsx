@@ -5,7 +5,7 @@ import StoreShell from '../components/StoreShell.jsx';
 import { clearLocalCart, localCartTotal, readLocalCart, updateLocalCartItem } from '../lib/catalog/cart.js';
 import { formatMoney } from '../lib/catalog/model.js';
 import { createOrder, newOrderReference } from '../lib/catalog/orders.js';
-import { sendCustomerConfirmationEmail, sendOrderEmail } from '../lib/email.js';
+import { customerEmailConfigured, sendCustomerConfirmationEmail, sendOrderEmail } from '../lib/email.js';
 import {
   DEFAULT_SHIPPING_ID,
   SHIPPING_METHODS,
@@ -99,9 +99,11 @@ export default function CheckoutPage() {
     const next = {};
     if (!form.firstName.trim()) next.firstName = 'Required';
     if (!form.lastName.trim()) next.lastName = 'Required';
-    // Ten digits is the shortest usable US number, and the WhatsApp confirmation depends on it.
+    // Ten digits is the shortest usable US number, and the team calls it to confirm.
     if (form.phone.replace(/\D/g, '').length < 10) next.phone = 'Enter a valid phone number';
-    if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) next.email = 'Enter a valid email';
+    // Required, because this is where the order confirmation is sent.
+    if (!form.email.trim()) next.email = 'Required — your order confirmation is sent here';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) next.email = 'Enter a valid email';
     if (shipping.requiresAddress) {
       if (!form.address.trim()) next.address = 'Required';
       if (!form.city.trim()) next.city = 'Required';
@@ -139,7 +141,7 @@ export default function CheckoutPage() {
     // Persist the order so it appears in the admin dashboard immediately.
     // A storage failure must never prevent the customer from seeing a
     // confirmation, so createOrder already swallows its own errors.
-    await createOrder({
+    const saved = await createOrder({
       reference,
       status: 'new',
       customer_name: customerName,
@@ -182,9 +184,9 @@ export default function CheckoutPage() {
       notes: form.notes.trim(),
     });
 
-    // Send a confirmation to the customer if they provided an email and
-    // EmailJS is configured. Fired in parallel with the admin email; both
-    // are capped by the same timeout so neither can stall the confirmation screen.
+    // Send the customer their own "we have your order" confirmation. Fired in
+    // parallel with the admin email; both are capped by the same timeout so
+    // neither can stall the confirmation screen.
     const customerMailed = sendCustomerConfirmationEmail({
       reference,
       customer: {
@@ -203,13 +205,26 @@ export default function CheckoutPage() {
       notes: form.notes.trim(),
     });
 
-    await Promise.race([
+    const results = await Promise.race([
       Promise.all([mailed, customerMailed]),
-      new Promise((resolve) => setTimeout(resolve, MAIL_WAIT_MS)),
+      new Promise((resolve) => setTimeout(() => resolve(null), MAIL_WAIT_MS)),
     ]);
 
+    // A null result means the mail service was still working when the timeout
+    // fired. The requests carry keepalive, so they are very likely to land -
+    // treat that as sent rather than alarming the customer over a slow service.
+    const confirmationSent = results ? results[1]?.ok !== false : true;
+
     clearLocalCart();
-    setPlaced({ reference, total, customerName, email: form.email.trim() });
+    setPlaced({
+      reference,
+      total,
+      customerName,
+      email: form.email.trim(),
+      confirmationSent,
+      // Supabase was unreachable, so this order is only in this browser.
+      offline: saved?.persisted === 'local' && Boolean(saved?.error),
+    });
     setSubmitting(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -242,6 +257,22 @@ export default function CheckoutPage() {
               Your order <strong>{placed.reference}</strong> ({formatMoney(placed.total)}) has been received. Our team
               will be in touch shortly to confirm availability and arrange payment.
             </p>
+            {placed.confirmationSent && placed.email ? (
+              <p>
+                A confirmation is on its way to <strong>{placed.email}</strong>. If it is not there in a few
+                minutes, check your spam folder.
+              </p>
+            ) : (
+              <p>
+                Keep your reference handy — we will confirm everything by phone and email shortly.
+              </p>
+            )}
+            {placed.offline ? (
+              <p className="gtz-admin__muted">
+                Please take a screenshot of this page. We had trouble reaching our system, so quoting{' '}
+                <strong>{placed.reference}</strong> will help us find your order faster.
+              </p>
+            ) : null}
             <p className="gtz-admin__muted">
               For any questions email us at{' '}
               <a href="mailto:info@greentreezco.com">info@greentreezco.com</a>.
@@ -296,8 +327,18 @@ export default function CheckoutPage() {
                     onChange={setField('phone')}
                   />
                 </Field>
-                <Field label="Email (optional)" error={errors.email}>
-                  <input type="email" autoComplete="email" value={form.email} onChange={setField('email')} />
+                <Field label="Email" error={errors.email}>
+                  <input
+                    type="email"
+                    autoComplete="email"
+                    required
+                    placeholder="you@example.com"
+                    value={form.email}
+                    onChange={setField('email')}
+                  />
+                  {customerEmailConfigured() ? (
+                    <span className="gtz-field__hint">Your order confirmation is sent here.</span>
+                  ) : null}
                 </Field>
               </div>
             </section>

@@ -29,7 +29,7 @@ function writeLocal(orders) {
   try {
     localStorage.setItem(KEY, JSON.stringify(orders));
   } catch {
-    /* quota or private mode: the order still reached WhatsApp */
+    /* quota or private mode: nothing more we can do from the browser */
   }
   window.dispatchEvent(new CustomEvent(EVENT, { detail: orders }));
   return orders;
@@ -92,18 +92,21 @@ export async function createOrder(order) {
       });
       if (error) throw error;
       window.dispatchEvent(new CustomEvent(EVENT));
-      return record;
+      return { ...record, persisted: 'supabase' };
     } catch (error) {
-      // Never block a customer's checkout on a logging failure. The order still
-      // reaches us over WhatsApp, so do not persist the customer's name, phone,
-      // and address into their own browser as a consolation prize.
-      console.warn('[orders] Supabase insert failed; order continues to WhatsApp only', error);
-      return record;
+      // Never block a customer's checkout on a storage failure, but never drop
+      // the order either: checkout no longer has a WhatsApp fallback, so this
+      // record is the only trace of the sale. Keep it in this browser so the
+      // admin can still recover it, and tell the caller it never reached the
+      // shared dashboard.
+      console.warn('[orders] Supabase insert failed; order kept in this browser only', error);
+      writeLocal([record, ...readLocal()]);
+      return { ...record, persisted: 'local', error: error?.message || 'Could not reach the orders database' };
     }
   }
 
   writeLocal([record, ...readLocal()]);
-  return record;
+  return { ...record, persisted: 'local' };
 }
 
 export async function listOrders() {
@@ -112,7 +115,18 @@ export async function listOrders() {
       const supabase = getSupabase();
       const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
       if (error) throw error;
-      return (data || []).map(normalize);
+      // Any order that fell back to this browser because the insert failed is
+      // still a real sale, so show it alongside the stored ones rather than
+      // letting a successful read hide it.
+      const remote = (data || []).map(normalize);
+      const seen = new Set(remote.map((order) => order.id));
+      const stranded = readLocal()
+        .map(normalize)
+        .filter((order) => !seen.has(order.id));
+      if (!stranded.length) return remote;
+      return [...remote, ...stranded].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
     } catch (error) {
       console.warn('[orders] Supabase read failed, showing local orders', error);
     }
@@ -150,8 +164,31 @@ export async function deleteOrder(id) {
   writeLocal(readLocal().filter((order) => order.id !== id));
 }
 
+// How often an open admin screen re-checks for orders placed elsewhere. The
+// in-page event only fires for changes made in this tab, so without this an
+// order placed by a customer would not appear until the admin reloaded.
+const POLL_MS = 30000;
+
 export function subscribeOrders(listener) {
   const handler = () => listener();
   window.addEventListener(EVENT, handler);
-  return () => window.removeEventListener(EVENT, handler);
+
+  // Only worth polling when orders are shared: a local-only install has no
+  // source of changes other than this tab.
+  if (!supabaseConfigured()) {
+    return () => window.removeEventListener(EVENT, handler);
+  }
+
+  const timer = setInterval(() => {
+    // Skip while the tab is hidden; the focus handler catches up on return.
+    if (document.visibilityState === 'visible') handler();
+  }, POLL_MS);
+  const onFocus = () => handler();
+  window.addEventListener('focus', onFocus);
+
+  return () => {
+    window.removeEventListener(EVENT, handler);
+    window.removeEventListener('focus', onFocus);
+    clearInterval(timer);
+  };
 }
