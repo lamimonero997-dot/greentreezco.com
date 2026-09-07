@@ -14,10 +14,10 @@ import {
   shippingFee,
   shippingPriceLabel,
 } from '../lib/catalog/shipping.js';
-import { useSiteContact, whatsappUrl } from '../lib/site.js';
+import { useSiteContact } from '../lib/site.js';
 
 const PAYMENT_METHODS = [
-  { id: 'card', label: 'Credit / debit card', note: 'Visa, Mastercard, Amex. Secure link sent on WhatsApp' },
+  { id: 'card', label: 'Credit / debit card', note: 'Visa, Mastercard, Amex. Secure link sent after order is confirmed' },
   { id: 'cashapp', label: 'Cash App', note: 'Pay to our verified $cashtag' },
   { id: 'zelle', label: 'Zelle', note: 'Bank to bank, no fees' },
   { id: 'venmo', label: 'Venmo', note: 'Fast peer-to-peer transfer' },
@@ -26,8 +26,7 @@ const PAYMENT_METHODS = [
   { id: 'cash', label: 'Cash on delivery or pickup', note: 'Pay when you receive your order' },
 ];
 
-// How long checkout will wait for the order email before handing the customer
-// over to WhatsApp regardless.
+// How long checkout will wait for the order confirmation email before continuing.
 const MAIL_WAIT_MS = 4000;
 
 const EMPTY_FORM = {
@@ -42,56 +41,6 @@ const EMPTY_FORM = {
   postalCode: '',
   notes: '',
 };
-
-function buildWhatsappMessage({ reference, cart, subtotal, shipping, shippingCost, total, payment, form, pickupAddress }) {
-  const lines = [
-    'Hello Green Treez Company - I would like to place this order.',
-    '',
-    `Order reference: ${reference}`,
-    '',
-    'ITEMS',
-  ];
-
-  cart.items.forEach((item, index) => {
-    const variant = item.variant_title && item.variant_title !== 'Default Title' ? ` (${item.variant_title})` : '';
-    lines.push(
-      `${index + 1}. ${item.title}${variant} - qty ${item.quantity} - ${formatMoney(item.price * item.quantity)}`
-    );
-  });
-
-  lines.push(
-    '',
-    `Subtotal: ${formatMoney(subtotal)}`,
-    `${shipping.label}: ${shippingCost === 0 ? 'Free' : formatMoney(shippingCost)}`,
-    `Total: ${formatMoney(total)}`,
-    '',
-    'CUSTOMER',
-    `Name: ${form.firstName} ${form.lastName}`.trim(),
-    `Phone: ${form.phone}`,
-    form.email.trim() ? `Email: ${form.email.trim()}` : null,
-    '',
-    'FULFILLMENT',
-    `Method: ${shipping.label}`,
-    `Estimated: ${shipping.eta}`
-  );
-
-  if (shipping.requiresAddress) {
-    lines.push(
-      `Address: ${[form.address, form.apartment].filter(Boolean).join(', ')}`,
-      `City/State/ZIP: ${form.city}, ${form.region} ${form.postalCode}`
-    );
-  } else {
-    lines.push(`Pickup at: ${pickupAddress}`);
-  }
-
-  lines.push('', 'PAYMENT', `Preferred method: ${payment.label}`);
-
-  if (form.notes.trim()) lines.push('', 'NOTES', form.notes.trim());
-
-  lines.push('', 'Please confirm availability and send payment details. Thank you.');
-
-  return lines.filter((line) => line !== null).join('\n');
-}
 
 function Field({ label, error, wide, children }) {
   return (
@@ -110,6 +59,9 @@ export default function CheckoutPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  // Once an order is placed we store the confirmation details here and show
+  // the success screen instead of the form.
+  const [placed, setPlaced] = useState(null);
   const contact = useSiteContact();
 
   useEffect(() => {
@@ -173,34 +125,29 @@ export default function CheckoutPage() {
 
     setSubmitting(true);
     const reference = newOrderReference();
-    const message = buildWhatsappMessage({
-      reference,
-      cart,
-      subtotal,
-      shipping,
-      shippingCost,
-      total,
-      payment,
-      form,
-      pickupAddress: contact.addressOneLine,
-    });
-    const url = whatsappUrl(message);
+    const customerName = `${form.firstName} ${form.lastName}`.trim();
+    const shippingAddress = shipping.requiresAddress
+      ? [form.address, form.apartment, `${form.city}, ${form.region} ${form.postalCode}`]
+          .filter(Boolean)
+          .join(', ')
+      : contact.addressOneLine;
+    const fulfillmentAddress = shipping.requiresAddress
+      ? shippingAddress
+      : `Pickup at ${contact.addressOneLine}`;
 
-    // Record the order for the admin before handing the conversation over to
-    // WhatsApp, where payment is finalised. A logging failure must never stop
-    // the customer from reaching us, so createOrder swallows its own errors.
+    // Persist the order so it appears in the admin dashboard immediately.
+    // A storage failure must never prevent the customer from seeing a
+    // confirmation, so createOrder already swallows its own errors.
     await createOrder({
       reference,
       status: 'new',
-      customer_name: `${form.firstName} ${form.lastName}`.trim(),
+      customer_name: customerName,
       customer_phone: form.phone,
       customer_email: form.email.trim(),
       delivery_method: shipping.label,
       delivery_eta: shipping.eta,
       shipping_fee: shippingCost,
-      shipping_address: shipping.requiresAddress
-        ? [form.address, form.apartment, `${form.city}, ${form.region} ${form.postalCode}`].filter(Boolean).join(', ')
-        : contact.addressOneLine,
+      shipping_address: shippingAddress,
       payment_method: payment.label,
       notes: form.notes.trim(),
       items: cart.items.map((item) => ({
@@ -214,27 +161,19 @@ export default function CheckoutPage() {
       total,
     });
 
-    // Every order goes to both channels: the shop inbox and WhatsApp. The email
-    // is what survives if the customer never finishes the WhatsApp conversation,
-    // so it is awaited rather than fired blind - a request cancelled by the
-    // redirect below may never reach the mail service. `keepalive` is still set
-    // as a safety net, and the wait is capped so a slow or unreachable mail
-    // service can only ever add a few seconds to checkout, never block it.
+    // Notify the admin by email. Awaited with a cap so a slow mail service
+    // never delays the confirmation screen shown to the customer.
     const mailed = sendOrderEmail({
       reference,
       customer: {
-        name: `${form.firstName} ${form.lastName}`.trim(),
+        name: customerName,
         phone: form.phone,
         email: form.email.trim(),
       },
       fulfillment: {
         method: shipping.label,
         eta: shipping.eta,
-        address: shipping.requiresAddress
-          ? [form.address, form.apartment, `${form.city}, ${form.region} ${form.postalCode}`]
-              .filter(Boolean)
-              .join(', ')
-          : `Pickup at ${contact.addressOneLine}`,
+        address: fulfillmentAddress,
       },
       payment: payment.label,
       items: cart.items,
@@ -245,19 +184,44 @@ export default function CheckoutPage() {
     await Promise.race([mailed, new Promise((resolve) => setTimeout(resolve, MAIL_WAIT_MS))]);
 
     clearLocalCart();
-    window.location.href = url;
+    setPlaced({ reference, total, customerName, email: form.email.trim() });
+    setSubmitting(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  if (!cart.items.length && !submitting) {
+  if (!cart.items.length && !submitting && !placed) {
     return (
       <StoreShell>
         <main className="gtz-checkout gtz-checkout--empty">
           <div className="gtz-checkout__empty-card">
             <span className="gtz-checkout__eyebrow">Secure checkout</span>
             <h1>Your cart is empty</h1>
-            <p>Add a few products and they will show up here, ready to confirm over WhatsApp.</p>
+            <p>Add a few products and they will show up here, ready to order.</p>
             <Link className="gtz-checkout__submit" to="/collections/all-thc-and-cbd-products">
               Browse the shop
+            </Link>
+          </div>
+        </main>
+      </StoreShell>
+    );
+  }
+
+  if (placed) {
+    return (
+      <StoreShell>
+        <main className="gtz-checkout gtz-checkout--empty">
+          <div className="gtz-checkout__empty-card">
+            <span className="gtz-checkout__eyebrow">Order placed</span>
+            <h1>Thank you{placed.customerName ? `, ${placed.customerName.split(' ')[0]}` : ''}!</h1>
+            <p>
+              Your order <strong>{placed.reference}</strong> ({formatMoney(placed.total)}) has been received. Our team
+              will be in touch shortly to confirm availability and send payment details.
+            </p>
+            {placed.email ? (
+              <p className="gtz-admin__muted">A confirmation has been sent to {placed.email}.</p>
+            ) : null}
+            <Link className="gtz-checkout__submit" to="/collections/all-thc-and-cbd-products">
+              Continue shopping
             </Link>
           </div>
         </main>
@@ -273,14 +237,14 @@ export default function CheckoutPage() {
             <span className="gtz-checkout__eyebrow">Secure checkout</span>
             <h1>Complete your order</h1>
             <p>
-              Confirm your details and preferred payment method. Tapping checkout opens WhatsApp with your order ready to
-              send to our team on {contact.whatsappDisplay}.
+              Confirm your details and preferred payment method. Our team will reach out to confirm availability and
+              arrange payment.
             </p>
           </div>
           <ol className="gtz-checkout__steps">
             <li className="is-done">Cart</li>
             <li className="is-active">Details &amp; payment</li>
-            <li>Confirm on WhatsApp</li>
+            <li>Order confirmed</li>
           </ol>
         </header>
 
@@ -297,7 +261,7 @@ export default function CheckoutPage() {
                 <Field label="Last name" error={errors.lastName}>
                   <input type="text" autoComplete="family-name" value={form.lastName} onChange={setField('lastName')} />
                 </Field>
-                <Field label="Phone (WhatsApp)" error={errors.phone}>
+                <Field label="Phone" error={errors.phone}>
                   <input
                     type="tel"
                     autoComplete="tel"
@@ -399,8 +363,8 @@ export default function CheckoutPage() {
                 <span>3</span> Payment method
               </h2>
               <p className="gtz-checkout__hint">
-                Choose how you would like to pay. Payment details are confirmed with a budtender on WhatsApp before
-                anything is charged, so we never ask for card numbers on this page.
+                Choose how you would like to pay. Our team will reach out with payment details after your order is
+                confirmed — we never ask for card numbers on this page.
               </p>
               <div className="gtz-checkout__options gtz-checkout__options--payment">
                 {PAYMENT_METHODS.map((method) => (
@@ -440,14 +404,14 @@ export default function CheckoutPage() {
               <button type="submit" className="gtz-checkout__submit" disabled={submitting}>
                 <span className="gtz-checkout__submit-icon" aria-hidden="true">
                   <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                    <path d="M12.04 2A9.9 9.9 0 0 0 2.13 11.9c0 1.75.46 3.46 1.33 4.97L2 22l5.28-1.38a9.87 9.87 0 0 0 4.76 1.21h.01a9.9 9.9 0 0 0 9.9-9.9A9.9 9.9 0 0 0 12.04 2Zm0 18.06h-.01a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.13.82.84-3.05-.2-.31a8.19 8.19 0 0 1-1.26-4.38 8.24 8.24 0 1 1 8.24 8.25Zm4.52-6.17c-.25-.13-1.47-.72-1.69-.8-.23-.09-.39-.13-.56.12-.16.25-.63.8-.78.96-.14.17-.29.19-.53.06-.25-.12-1.05-.38-1.99-1.23a7.4 7.4 0 0 1-1.38-1.71c-.14-.25-.02-.38.11-.5.11-.11.25-.29.37-.44.13-.14.17-.25.25-.41.09-.17.05-.31-.02-.44-.06-.12-.56-1.35-.77-1.85-.2-.48-.4-.42-.56-.43h-.47a.9.9 0 0 0-.66.31c-.22.25-.86.85-.86 2.06s.88 2.39 1 2.55c.13.17 1.74 2.65 4.2 3.71.59.26 1.05.41 1.4.52.59.19 1.13.16 1.55.1.47-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.15-1.18-.06-.1-.23-.17-.48-.29Z" />
+                    <path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
                   </svg>
                 </span>
-                {submitting ? 'Opening WhatsApp...' : `Checkout on WhatsApp - ${formatMoney(total)}`}
+                {submitting ? 'Placing order…' : `Place order — ${formatMoney(total)}`}
               </button>
               <p className="gtz-checkout__legal">
-                By continuing you confirm you are 21 or older. You will be redirected to WhatsApp to confirm the order
-                with our team on {contact.whatsappDisplay}.
+                By continuing you confirm you are 21 or older. Our team will contact you to confirm your order and
+                arrange payment.
               </p>
             </div>
           </form>
@@ -499,7 +463,7 @@ export default function CheckoutPage() {
                 </div>
               </dl>
               <ul className="gtz-checkout__assurance">
-                <li>Your details stay on this device until you send them</li>
+                <li>Your details stay on this device until you submit</li>
                 <li>Discreet, odour-proof packaging</li>
                 <li>Every batch lab tested</li>
               </ul>

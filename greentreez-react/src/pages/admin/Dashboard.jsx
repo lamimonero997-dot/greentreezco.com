@@ -265,7 +265,7 @@ export default function Dashboard() {
           ) : (
             <EmptyState
               title="No orders yet"
-              body="Orders placed through the storefront checkout land here the moment a customer taps checkout."
+              body="Orders placed through the storefront checkout land here the moment a customer submits their order."
             />
           )}
         </section>

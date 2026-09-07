@@ -32,8 +32,8 @@ export function contactEmail() {
 /**
  * Posts one message.
  *
- * `keepalive` lets the request outlive the page, which matters at checkout,
- * where the browser navigates to WhatsApp immediately afterwards.
+ * `keepalive` lets the request outlive the page so it survives any navigation
+ * that happens immediately after checkout.
  */
 async function send(payload, { keepalive = false } = {}) {
   if (!emailConfigured()) return { ok: false, skipped: true };
@@ -88,10 +88,9 @@ function itemLines(items = []) {
 }
 
 /**
- * A copy of a checkout, sent as the customer is handed over to WhatsApp.
- *
- * Fired without awaiting so it never delays the redirect; keepalive keeps it
- * alive through the navigation.
+ * Admin notification sent when a customer places an order through the
+ * storefront checkout. Delivered to the inbox the Web3Forms key is registered
+ * to (info@greentreezco.com by default).
  */
 export function sendOrderEmail({ reference, customer, fulfillment, payment, items, money, notes }) {
   const message = [
@@ -117,15 +116,16 @@ export function sendOrderEmail({ reference, customer, fulfillment, payment, item
     `Payment method: ${payment}`,
     notes ? `\nNOTES\n${notes}` : null,
     '',
-    'The customer was sent to WhatsApp to confirm this order.',
+    'The order is saved in the admin dashboard. Log in at /admin to confirm it.',
   ]
     .filter((line) => line !== null)
     .join('\n');
 
   return send(
     {
-      subject: `New order ${reference} - $${(money.total / 100).toFixed(2)}`,
+      subject: `New order ${reference} — $${(money.total / 100).toFixed(2)}`,
       from_name: customer.name || 'Storefront checkout',
+      // Web3Forms uses this as the reply-to so hitting reply contacts the customer.
       email: customer.email || undefined,
       name: customer.name,
       phone: customer.phone,

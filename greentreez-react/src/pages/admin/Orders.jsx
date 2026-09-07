@@ -276,7 +276,7 @@ export default function Orders() {
       <div className="gtz-admin__top">
         <div>
           <h1>Orders</h1>
-          <p className="gtz-admin__muted">Every checkout from the storefront, with the details your customer sent to WhatsApp.</p>
+          <p className="gtz-admin__muted">Every order placed through the storefront checkout, ready to confirm and fulfill.</p>
         </div>
         <div className="gtz-admin__actions">
           <button type="button" className="gtz-btn gtz-btn--ghost" onClick={refresh}>
@@ -416,7 +416,7 @@ export default function Orders() {
       <ConfirmDialog
         open={Boolean(pendingDelete)}
         title={`Delete ${pendingDelete?.reference || 'this order'}?`}
-        body="The order record is removed permanently. Your WhatsApp conversation with the customer is not affected."
+        body="The order record is removed permanently and cannot be recovered."
         confirmLabel="Delete order"
         danger
         onConfirm={confirmDelete}
