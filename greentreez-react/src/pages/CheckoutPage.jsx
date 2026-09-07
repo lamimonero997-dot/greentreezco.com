@@ -5,7 +5,7 @@ import StoreShell from '../components/StoreShell.jsx';
 import { clearLocalCart, localCartTotal, readLocalCart, updateLocalCartItem } from '../lib/catalog/cart.js';
 import { formatMoney } from '../lib/catalog/model.js';
 import { createOrder, newOrderReference } from '../lib/catalog/orders.js';
-import { sendOrderEmail } from '../lib/email.js';
+import { sendCustomerConfirmationEmail, sendOrderEmail } from '../lib/email.js';
 import {
   DEFAULT_SHIPPING_ID,
   SHIPPING_METHODS,
@@ -181,7 +181,31 @@ export default function CheckoutPage() {
       notes: form.notes.trim(),
     });
 
-    await Promise.race([mailed, new Promise((resolve) => setTimeout(resolve, MAIL_WAIT_MS))]);
+    // Send a confirmation to the customer if they provided an email and
+    // EmailJS is configured. Fired in parallel with the admin email; both
+    // are capped by the same timeout so neither can stall the confirmation screen.
+    const customerMailed = sendCustomerConfirmationEmail({
+      reference,
+      customer: {
+        name: customerName,
+        phone: form.phone,
+        email: form.email.trim(),
+      },
+      fulfillment: {
+        method: shipping.label,
+        eta: shipping.eta,
+        address: fulfillmentAddress,
+      },
+      payment: payment.label,
+      items: cart.items,
+      money: { subtotal, shipping: shippingCost, total },
+      notes: form.notes.trim(),
+    });
+
+    await Promise.race([
+      Promise.all([mailed, customerMailed]),
+      new Promise((resolve) => setTimeout(resolve, MAIL_WAIT_MS)),
+    ]);
 
     clearLocalCart();
     setPlaced({ reference, total, customerName, email: form.email.trim() });
@@ -215,11 +239,12 @@ export default function CheckoutPage() {
             <h1>Thank you{placed.customerName ? `, ${placed.customerName.split(' ')[0]}` : ''}!</h1>
             <p>
               Your order <strong>{placed.reference}</strong> ({formatMoney(placed.total)}) has been received. Our team
-              will be in touch shortly to confirm availability and send payment details.
+              will be in touch shortly to confirm availability and arrange payment.
             </p>
-            {placed.email ? (
-              <p className="gtz-admin__muted">A confirmation has been sent to {placed.email}.</p>
-            ) : null}
+            <p className="gtz-admin__muted">
+              For any questions email us at{' '}
+              <a href="mailto:info@greentreezco.com">info@greentreezco.com</a>.
+            </p>
             <Link className="gtz-checkout__submit" to="/collections/all-thc-and-cbd-products">
               Continue shopping
             </Link>

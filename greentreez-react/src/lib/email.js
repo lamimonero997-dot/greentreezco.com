@@ -87,6 +87,76 @@ function itemLines(items = []) {
     .join('\n');
 }
 
+// ---------------------------------------------------------------------------
+// Customer confirmation email — sent via EmailJS so the "to" address can be
+// the customer's own inbox rather than the fixed Web3Forms delivery address.
+//
+// Setup (free, 200 emails/month):
+//   1. Create an account at https://www.emailjs.com
+//   2. Add Email Service → connect your Gmail (info@greentreezco.com)
+//   3. Create an Email Template with these variables:
+//        {{to_email}}   {{to_name}}   {{order_ref}}   {{order_total}}
+//        {{order_items}}   {{fulfillment_method}}   {{fulfillment_eta}}
+//        {{fulfillment_address}}   {{payment_method}}   {{notes}}
+//   4. Copy your Public Key, Service ID, and Template ID into .env:
+//        VITE_EMAILJS_PUBLIC_KEY=...
+//        VITE_EMAILJS_SERVICE_ID=...
+//        VITE_EMAILJS_TEMPLATE_ID=...
+// ---------------------------------------------------------------------------
+const EMAILJS_ENDPOINT = 'https://api.emailjs.com/api/v1.0/email/send';
+
+function emailjsConfigured() {
+  return Boolean(
+    import.meta.env.VITE_EMAILJS_PUBLIC_KEY &&
+    import.meta.env.VITE_EMAILJS_SERVICE_ID &&
+    import.meta.env.VITE_EMAILJS_TEMPLATE_ID
+  );
+}
+
+/**
+ * Sends an order confirmation directly to the customer's email address.
+ * Silently skips if the EmailJS env vars are not configured.
+ */
+export function sendCustomerConfirmationEmail({ reference, customer, fulfillment, payment, items, money, notes }) {
+  if (!emailjsConfigured() || !customer.email) return Promise.resolve({ ok: false, skipped: true });
+
+  const orderItems = items
+    .map((item) => {
+      const variant =
+        item.variant_title && item.variant_title !== 'Default Title' ? ` (${item.variant_title})` : '';
+      const lineTotal = ((Number(item.price || 0) * Number(item.quantity || 0)) / 100).toFixed(2);
+      return `${item.quantity}× ${item.title}${variant} — $${lineTotal}`;
+    })
+    .join('\n');
+
+  const body = JSON.stringify({
+    service_id: import.meta.env.VITE_EMAILJS_SERVICE_ID,
+    template_id: import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+    user_id: import.meta.env.VITE_EMAILJS_PUBLIC_KEY,
+    template_params: {
+      to_email: customer.email,
+      to_name: customer.name || 'Valued customer',
+      order_ref: reference,
+      order_total: `$${(money.total / 100).toFixed(2)}`,
+      order_items: orderItems,
+      fulfillment_method: fulfillment.method,
+      fulfillment_eta: fulfillment.eta,
+      fulfillment_address: fulfillment.address,
+      payment_method: payment,
+      notes: notes || 'None',
+    },
+  });
+
+  return fetch(EMAILJS_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body,
+    keepalive: true,
+  })
+    .then((res) => (res.ok ? { ok: true } : { ok: false, error: `EmailJS returned ${res.status}` }))
+    .catch((err) => ({ ok: false, error: err.message || 'Could not reach EmailJS' }));
+}
+
 /**
  * Admin notification sent when a customer places an order through the
  * storefront checkout. Delivered to the inbox the Web3Forms key is registered
