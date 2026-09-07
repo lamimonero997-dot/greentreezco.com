@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const projectDir = path.dirname(fileURLToPath(import.meta.url));
-const STORE = 'https://greentreezcompany.com';
+const STORE = 'https://greentreezco.com';
 
 function localProductHtml(url) {
   const match = url.match(/\/products\/([^/?#]+)/);

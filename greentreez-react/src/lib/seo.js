@@ -20,7 +20,7 @@
  */
 
 const SITE_NAME   = 'Green Treez Company';
-const BASE_URL    = 'https://greentreezcompany.com';
+const BASE_URL    = 'https://greentreezco.com';
 const FALLBACK_IMG = `${BASE_URL}/cdn/shop/files/Green_Treez_Logo_Online_49d74201-94de-44f4-984a-9f299aedc9ad.png`;
 
 // ---------------------------------------------------------------------------

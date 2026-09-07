@@ -11,4 +11,4 @@ Disallow: /cdn/shop/t/
 Disallow: /pages/*.json
 
 # Sitemap location
-Sitemap: https://greentreezcompany.com/sitemap.xml
+Sitemap: https://greentreezco.com/sitemap.xml

@@ -21,7 +21,7 @@ const projectDir = path.resolve(root, '..');
 const catalogPath = path.join(projectDir, 'public', 'data', 'catalog.json');
 const outPath = path.join(projectDir, 'public', 'sitemap.xml');
 
-const BASE_URL = 'https://greentreezcompany.com';
+const BASE_URL = 'https://greentreezco.com';
 
 function today() {
   return new Date().toISOString().slice(0, 10);
