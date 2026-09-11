@@ -12,7 +12,7 @@
  */
 
 export const SITE_NAME = 'Green Treez Company';
-export const BASE_URL = 'https://greentreezco.com';
+export const BASE_URL = 'https://www.greentreezco.com';
 export const BRAND_SUFFIX = ' | Green Treez';
 export const DEFAULT_TITLE = `${SITE_NAME} | Legal THC & CBD — Nashville, TN`;
 

@@ -16,4 +16,4 @@ Disallow: /collections/*/products/
 # so /cdn/shop/t/ and /pages/*.json are deliberately left crawlable.
 
 # Sitemap location
-Sitemap: https://greentreezco.com/sitemap.xml
+Sitemap: https://www.greentreezco.com/sitemap.xml

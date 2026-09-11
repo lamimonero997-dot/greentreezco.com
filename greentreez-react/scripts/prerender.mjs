@@ -45,7 +45,7 @@ const pagesDir   = path.join(appDir, 'public', 'pages');
 const catalogPath = path.join(appDir, 'public', 'data', 'catalog.json');
 const manifestPath = path.join(appDir, 'public', 'pages-manifest.json');
 
-const BASE_URL   = 'https://greentreezco.com';
+const BASE_URL   = 'https://www.greentreezco.com';
 const SITE_NAME  = 'Green Treez Company';
 const FALLBACK_IMG = `${BASE_URL}/cdn/shop/files/Green_Treez_Logo_Online_49d74201-94de-44f4-984a-9f299aedc9ad.png`;
 

@@ -23,7 +23,7 @@ const manifestPath = path.join(projectDir, 'public', 'pages-manifest.json');
 const pagesDir = path.join(projectDir, 'public', 'pages');
 const outPath = path.join(projectDir, 'public', 'sitemap.xml');
 
-const BASE_URL = 'https://greentreezco.com';
+const BASE_URL = 'https://www.greentreezco.com';
 
 function today() {
   return new Date().toISOString().slice(0, 10);
