@@ -27,10 +27,12 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const projectDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const distDir    = path.join(projectDir, 'dist');
-const pagesDir   = path.join(projectDir, 'public', 'pages');
-const catalogPath = path.join(projectDir, 'public', 'data', 'catalog.json');
-const manifestPath = path.join(projectDir, 'public', 'pages-manifest.json');
+// scripts/ lives inside greentreez-react/scripts/, so one dirname up = greentreez-react/
+const appDir     = path.dirname(fileURLToPath(import.meta.url)).replace(/[/\\]scripts$/, '');
+const distDir    = path.join(appDir, 'dist');
+const pagesDir   = path.join(appDir, 'public', 'pages');
+const catalogPath = path.join(appDir, 'public', 'data', 'catalog.json');
+const manifestPath = path.join(appDir, 'public', 'pages-manifest.json');
 
 const BASE_URL   = 'https://greentreezco.com';
 const SITE_NAME  = 'Green Treez Company';
@@ -393,6 +395,8 @@ function renderStaticPages(manifest) {
 // ---------------------------------------------------------------------------
 
 console.log('[prerender] starting…');
+console.log('[prerender] appDir:', appDir);
+console.log('[prerender] distDir:', distDir);
 
 const catalog  = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
