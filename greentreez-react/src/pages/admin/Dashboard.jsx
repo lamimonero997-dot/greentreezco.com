@@ -274,7 +274,7 @@ export default function Dashboard() {
           <div className="gtz-card-head">
             <h2>Site traffic</h2>
             <a
-              href="https://analytics.google.com/analytics/web/#/p487194285/reports/reportinghub"
+              href="https://analytics.google.com/analytics/web/#/p553705339/reports/reportinghub"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -288,7 +288,7 @@ export default function Dashboard() {
           <div className="gtz-analytics-card__links">
             <a
               className="gtz-analytics-card__tile"
-              href="https://analytics.google.com/analytics/web/#/p487194285/reports/realtime"
+              href="https://analytics.google.com/analytics/web/#/p553705339/reports/realtime"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -300,7 +300,7 @@ export default function Dashboard() {
             </a>
             <a
               className="gtz-analytics-card__tile"
-              href="https://analytics.google.com/analytics/web/#/p487194285/reports/explorer?params=_u..nav%3Dmaui%26_u.dateOption%3Dlast7days&r=lifecycle-acquisition-v2"
+              href="https://analytics.google.com/analytics/web/#/p553705339/reports/explorer?params=_u..nav%3Dmaui%26_u.dateOption%3Dlast7days&r=lifecycle-acquisition-v2"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -312,7 +312,7 @@ export default function Dashboard() {
             </a>
             <a
               className="gtz-analytics-card__tile"
-              href="https://analytics.google.com/analytics/web/#/p487194285/reports/explorer?params=_u..nav%3Dmaui%26_u.dateOption%3Dlast28days&r=top-pages"
+              href="https://analytics.google.com/analytics/web/#/p553705339/reports/explorer?params=_u..nav%3Dmaui%26_u.dateOption%3Dlast28days&r=top-pages"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -324,7 +324,7 @@ export default function Dashboard() {
             </a>
             <a
               className="gtz-analytics-card__tile"
-              href="https://analytics.google.com/analytics/web/#/p487194285/reports/explorer?params=_u..nav%3Dmaui%26_u.dateOption%3Dlast28days&r=user-technology-detail"
+              href="https://analytics.google.com/analytics/web/#/p553705339/reports/explorer?params=_u..nav%3Dmaui%26_u.dateOption%3Dlast28days&r=user-technology-detail"
               target="_blank"
               rel="noopener noreferrer"
             >
