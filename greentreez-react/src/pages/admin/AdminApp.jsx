@@ -327,6 +327,7 @@ function Layout({ onLogout, newOrders, children }) {
   const settings = useSiteSettings();
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
+  const [analyticsOpen, setAnalyticsOpen] = useState(false);
 
   useEffect(() => {
     const onKey = (event) => {
@@ -347,6 +348,8 @@ function Layout({ onLogout, newOrders, children }) {
     { to: '/admin/collections', icon: ICONS.collections, label: 'Collections' },
     { to: '/admin/settings', icon: ICONS.settings, label: 'Settings' },
   ];
+
+  const GA_URL = 'https://analytics.google.com/analytics/web/#/p553705339/reports/reportinghub';
 
   return (
     <div className={`gtz-admin${navOpen ? ' is-nav-open' : ''}`}>
@@ -370,6 +373,10 @@ function Layout({ onLogout, newOrders, children }) {
               {link.badge ? <em className="gtz-nav-badge">{link.badge}</em> : null}
             </NavLink>
           ))}
+          <button type="button" className="gtz-admin__analytics-link" onClick={() => { setAnalyticsOpen(true); setNavOpen(false); }}>
+            <Icon path={ICONS.analytics} />
+            Analytics
+          </button>
           <NavLink to="/admin/products/new" onClick={() => setNavOpen(false)}>
             <Icon path={ICONS.add} />
             Add product
@@ -398,6 +405,49 @@ function Layout({ onLogout, newOrders, children }) {
 
       <main className="gtz-admin__main">{children}</main>
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
+      {analyticsOpen && (
+        <div className="gtz-modal gtz-modal--analytics" role="dialog" aria-modal="true" aria-label="Site Analytics">
+          <button type="button" className="gtz-modal__scrim" onClick={() => setAnalyticsOpen(false)} aria-label="Close" />
+          <div className="gtz-modal__panel gtz-analytics-modal">
+            <div className="gtz-card-head">
+              <h2>Site traffic</h2>
+              <a href={GA_URL} target="_blank" rel="noopener noreferrer">
+                Open Analytics ↗
+              </a>
+            </div>
+            <p className="gtz-analytics-card__intro">
+              Google Analytics is tracking <strong>greentreezco.com</strong>. Click below to view
+              real-time visitors, sessions, top pages, and acquisition channels.
+            </p>
+            <div className="gtz-analytics-card__links">
+              <a className="gtz-analytics-card__tile" href="https://analytics.google.com/analytics/web/#/p553705339/reports/realtime" target="_blank" rel="noopener noreferrer">
+                <span className="gtz-analytics-card__tile-icon" aria-hidden="true">👁</span>
+                <span><strong>Realtime</strong><small>Active users right now</small></span>
+              </a>
+              <a className="gtz-analytics-card__tile" href="https://analytics.google.com/analytics/web/#/p553705339/reports/explorer?params=_u..nav%3Dmaui%26_u.dateOption%3Dlast7days&r=lifecycle-acquisition-v2" target="_blank" rel="noopener noreferrer">
+                <span className="gtz-analytics-card__tile-icon" aria-hidden="true">📈</span>
+                <span><strong>Acquisition</strong><small>Where visitors come from</small></span>
+              </a>
+              <a className="gtz-analytics-card__tile" href="https://analytics.google.com/analytics/web/#/p553705339/reports/explorer?params=_u..nav%3Dmaui%26_u.dateOption%3Dlast28days&r=top-pages" target="_blank" rel="noopener noreferrer">
+                <span className="gtz-analytics-card__tile-icon" aria-hidden="true">📄</span>
+                <span><strong>Top pages</strong><small>Most-visited content</small></span>
+              </a>
+              <a className="gtz-analytics-card__tile" href="https://analytics.google.com/analytics/web/#/p553705339/reports/explorer?params=_u..nav%3Dmaui%26_u.dateOption%3Dlast28days&r=user-technology-detail" target="_blank" rel="noopener noreferrer">
+                <span className="gtz-analytics-card__tile-icon" aria-hidden="true">📱</span>
+                <span><strong>Devices</strong><small>Mobile vs desktop breakdown</small></span>
+              </a>
+            </div>
+            <p className="gtz-analytics-card__note">
+              Measurement ID: <code>G-W9LY96K1DD</code> · Stream: greentreezco
+            </p>
+            <div style={{ marginTop: '1.1rem', display: 'flex', justifyContent: 'flex-end' }}>
+              <button type="button" className="gtz-btn gtz-btn--ghost" onClick={() => setAnalyticsOpen(false)}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

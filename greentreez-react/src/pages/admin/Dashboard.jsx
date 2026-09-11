@@ -281,7 +281,7 @@ export default function Dashboard() {
               Open Analytics ↗
             </a>
           </div>
-          <p className="gtz-admin__muted gtz-analytics-card__intro">
+          <p className="gtz-analytics-card__intro">
             Google Analytics is tracking <strong>greentreezco.com</strong>. Click below to view
             real-time visitors, sessions, top pages, and acquisition channels.
           </p>

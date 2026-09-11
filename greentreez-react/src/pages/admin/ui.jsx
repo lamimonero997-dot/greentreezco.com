@@ -28,6 +28,7 @@ export const ICONS = {
   external: 'M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3',
   whatsapp: 'M21 11.5a8.4 8.4 0 01-12.6 7.3L3 20.5l1.8-5.2A8.5 8.5 0 1121 11.5z',
   refresh: 'M21 12a9 9 0 11-3-6.7M21 3v6h-6',
+  analytics: 'M3 3v18h18M7 16l4-4 4 4 4-4',
 };
 
 export function Icon({ path, size = 18 }) {
