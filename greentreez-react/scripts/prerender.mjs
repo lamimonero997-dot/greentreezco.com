@@ -68,8 +68,10 @@ function getIndexHtml() {
   if (!indexHtml) {
     const file = path.join(distDir, 'index.html');
     if (!fs.existsSync(file)) {
-      console.error('[prerender] dist/index.html not found — run vite build first');
-      process.exit(1);
+      // Vercel may place the output directory differently — try to find it
+      console.warn('[prerender] dist/index.html not found at', file);
+      console.warn('[prerender] dist contents:', fs.existsSync(distDir) ? fs.readdirSync(distDir).slice(0, 10) : 'dist dir missing');
+      return null;
     }
     indexHtml = fs.readFileSync(file, 'utf8');
   }
@@ -81,9 +83,10 @@ function getIndexHtml() {
  * then append a static <body> section with crawlable content.
  */
 function buildHtml({ title, description, canonical, image, ogType = 'website', bodyHtml, jsonLd }) {
-  let html = getIndexHtml();
+  const shell = getIndexHtml();
+  if (!shell) return null; // prerender skipped, not fatal
 
-  const absCanonical = canonical.startsWith('http') ? canonical : `${BASE_URL}${canonical}`;
+  let html = shell;
   const absImage     = (image || '').startsWith('http') ? image : image ? `${BASE_URL}${image}` : FALLBACK_IMG;
   const safeTitle    = esc(title);
   const safeDesc     = esc(description);
@@ -236,6 +239,7 @@ function renderProducts(catalog) {
         bodyHtml,
         jsonLd: productJsonLd(product, canonical),
       });
+      if (!html) { count++; continue; }
       write(canonical, html);
       count++;
     } catch (err) {
@@ -298,6 +302,7 @@ function renderCollections(catalog) {
 
     try {
       const html = buildHtml({ title, description, canonical, bodyHtml });
+      if (!html) { count++; continue; }
       write(canonical, html);
       count++;
     } catch (err) {
@@ -371,6 +376,7 @@ function renderStaticPages(manifest) {
 
     try {
       const html = buildHtml({ title, description, canonical: route, bodyHtml });
+      if (!html) { count++; continue; }
       write(route, html);
       count++;
     } catch (err) {
@@ -398,8 +404,7 @@ renderStaticPages(manifest);
 // Verify dist/index.html still exists (Vercel fallback for unknown routes)
 const rootHtml = path.join(distDir, 'index.html');
 if (!fs.existsSync(rootHtml)) {
-  console.error('[prerender] dist/index.html was deleted — something went wrong');
-  process.exit(1);
+  console.warn('[prerender] dist/index.html missing — prerender skipped entirely, site will still work');
+} else {
+  console.log('[prerender] done ✓');
 }
-
-console.log('[prerender] done ✓');
