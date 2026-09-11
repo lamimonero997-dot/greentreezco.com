@@ -458,20 +458,6 @@ export default function CheckoutPage() {
               </div>
             </section>
 
-            <section className="gtz-checkout__card">
-              <h2>
-                <span>4</span> Order notes
-              </h2>
-              <Field label="Anything we should know? (optional)" wide>
-                <textarea
-                  rows="3"
-                  value={form.notes}
-                  onChange={setField('notes')}
-                  placeholder="Delivery instructions, preferred call time, gift note..."
-                />
-              </Field>
-            </section>
-
             <div className="gtz-checkout__actions">
               <button type="submit" className="gtz-checkout__submit" disabled={submitting || belowMinimum}>
                 <span className="gtz-checkout__submit-icon" aria-hidden="true">
