@@ -3295,6 +3295,10 @@ body.gtz-checkout-page { --gtz-co-forest:#153a32; --gtz-co-deep:#102f29; --gtz-c
 .gtz-checkout__help a { color:var(--gtz-co-forest); font-family:'Roboto Slab',Georgia,serif; font-size:1.16rem; font-weight:700; letter-spacing:-.02em; text-decoration:none; }
 .gtz-checkout__help address { display:flex; flex-direction:column; color:#5d726a; font-size:.81rem; font-style:normal; line-height:1.55; }
 
+.gtz-checkout__min-order { display:flex; align-items:flex-start; gap:10px; margin-top:14px; padding:12px 14px; border-radius:10px; background:#fff8ec; border:1px solid #f5d98a; color:#7a4f00; font-size:.84rem; line-height:1.55; }
+.gtz-checkout__min-order svg { flex:0 0 auto; margin-top:2px; color:#c08000; }
+.gtz-checkout__min-order strong { font-weight:700; }
+
 .gtz-checkout--empty { display:grid; place-items:center; min-height:52vh; }
 .gtz-checkout__empty-card { max-width:460px; padding:clamp(30px,5vw,52px); border:1px solid var(--gtz-co-line); border-radius:16px; background:#fff; text-align:center; }
 .gtz-checkout__empty-card h1 { margin:10px 0 10px; font-family:'Roboto Slab',Georgia,serif; font-size:1.9rem; font-weight:700; letter-spacing:-.04em; }

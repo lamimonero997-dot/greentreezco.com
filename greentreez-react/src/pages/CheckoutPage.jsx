@@ -17,6 +17,9 @@ import {
 import { useSiteContact } from '../lib/site.js';
 import { setNoIndex } from '../lib/seo.js';
 
+// Minimum subtotal required to place an order (in cents — $100.00).
+const MIN_ORDER_CENTS = 10000;
+
 const PAYMENT_METHODS = [
   { id: 'card', label: 'Credit / debit card', note: 'Visa, Mastercard, Amex. Secure link sent after order is confirmed' },
   { id: 'cashapp', label: 'Cash App', note: 'Pay to our verified $cashtag' },
@@ -87,6 +90,7 @@ export default function CheckoutPage() {
   const shippingCost = shippingFee(shipping, subtotal);
   const total = subtotal + shippingCost;
   const freeShippingGap = freeShippingRemainder(subtotal);
+  const belowMinimum = subtotal < MIN_ORDER_CENTS;
   const payment = PAYMENT_METHODS.find((method) => method.id === paymentId) || PAYMENT_METHODS[0];
 
   const setField = (name) => (event) => {
@@ -117,6 +121,7 @@ export default function CheckoutPage() {
   async function handleSubmit(event) {
     event.preventDefault();
     if (!cart.items.length || submitting) return;
+    if (belowMinimum) return;
     if (!validate()) {
       requestAnimationFrame(() => {
         const firstError = document.querySelector('.gtz-field--invalid input, .gtz-field--invalid textarea');
@@ -468,7 +473,7 @@ export default function CheckoutPage() {
             </section>
 
             <div className="gtz-checkout__actions">
-              <button type="submit" className="gtz-checkout__submit" disabled={submitting}>
+              <button type="submit" className="gtz-checkout__submit" disabled={submitting || belowMinimum}>
                 <span className="gtz-checkout__submit-icon" aria-hidden="true">
                   <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
                     <path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
@@ -529,6 +534,18 @@ export default function CheckoutPage() {
                   <dd>{formatMoney(total)}</dd>
                 </div>
               </dl>
+              {belowMinimum && (
+                <div className="gtz-checkout__min-order" role="alert">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                  </svg>
+                  <span>
+                    <strong>Minimum order is {formatMoney(MIN_ORDER_CENTS)}</strong>
+                    <br />
+                    Add {formatMoney(MIN_ORDER_CENTS - subtotal)} more to place your order.
+                  </span>
+                </div>
+              )}
               <ul className="gtz-checkout__assurance">
                 <li>Your details stay on this device until you submit</li>
                 <li>Discreet, odour-proof packaging</li>
