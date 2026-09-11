@@ -62,10 +62,20 @@ export default function CartDrawer() {
                           type="number"
                           min="0"
                           value={item.quantity}
+                          aria-label={`Quantity for ${item.title}`}
                           onChange={(event) => updateLocalCartItem(item.variant_id, Number(event.target.value) || 0)}
                         />
                         <span>{formatMoney(item.price * item.quantity)}</span>
                       </div>
+                      {/* Typing 0 into the quantity box already removed a line,
+                          but nothing said so. This is the obvious way out. */}
+                      <button
+                        type="button"
+                        className="gtz-cart-drawer__remove"
+                        onClick={() => updateLocalCartItem(item.variant_id, 0)}
+                      >
+                        Remove
+                      </button>
                     </div>
                   </li>
                 ))}

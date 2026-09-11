@@ -2228,6 +2228,26 @@ body.gtz-dynamic-collection .collection__header-info__title {
   background: #f6f6f4;
 }
 
+/* Remove control on each cart-drawer line. Matches .gtz-checkout__remove so the
+   drawer and the checkout summary offer the same affordance in the same style. */
+.gtz-cart-drawer__remove {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #8b7368;
+  font: inherit;
+  font-size: 0.78rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.gtz-cart-drawer__remove:hover,
+.gtz-cart-drawer__remove:focus-visible {
+  color: #b8452f;
+}
+
 .gtz-cart-drawer__note {
   color: #6b6b6b;
   font-size: 0.85rem;
