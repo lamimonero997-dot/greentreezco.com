@@ -6,9 +6,14 @@ Disallow: /admin/
 Disallow: /checkout
 Disallow: /cart
 
-# Block internal API/data paths
-Disallow: /cdn/shop/t/
-Disallow: /pages/*.json
+# Faceted/duplicate URLs the storefront generates
+Disallow: /*?variant=
+Disallow: /*/tagged/
+Disallow: /collections/*/products/
+
+# Googlebot must be able to fetch the theme CSS/JS and the page JSON the app
+# loads its content from. Blocking them stops Google rendering the site at all,
+# so /cdn/shop/t/ and /pages/*.json are deliberately left crawlable.
 
 # Sitemap location
 Sitemap: https://greentreezco.com/sitemap.xml
