@@ -270,6 +270,76 @@ export default function Dashboard() {
           )}
         </section>
 
+        <section className="gtz-admin-card gtz-analytics-card">
+          <div className="gtz-card-head">
+            <h2>Site traffic</h2>
+            <a
+              href="https://analytics.google.com/analytics/web/#/p487194285/reports/reportinghub"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Open Analytics ↗
+            </a>
+          </div>
+          <p className="gtz-admin__muted gtz-analytics-card__intro">
+            Google Analytics is tracking <strong>greentreezco.com</strong>. Click below to view
+            real-time visitors, sessions, top pages, and acquisition channels.
+          </p>
+          <div className="gtz-analytics-card__links">
+            <a
+              className="gtz-analytics-card__tile"
+              href="https://analytics.google.com/analytics/web/#/p487194285/reports/realtime"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span className="gtz-analytics-card__tile-icon" aria-hidden="true">👁</span>
+              <span>
+                <strong>Realtime</strong>
+                <small>Active users right now</small>
+              </span>
+            </a>
+            <a
+              className="gtz-analytics-card__tile"
+              href="https://analytics.google.com/analytics/web/#/p487194285/reports/explorer?params=_u..nav%3Dmaui%26_u.dateOption%3Dlast7days&r=lifecycle-acquisition-v2"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span className="gtz-analytics-card__tile-icon" aria-hidden="true">📈</span>
+              <span>
+                <strong>Acquisition</strong>
+                <small>Where visitors come from</small>
+              </span>
+            </a>
+            <a
+              className="gtz-analytics-card__tile"
+              href="https://analytics.google.com/analytics/web/#/p487194285/reports/explorer?params=_u..nav%3Dmaui%26_u.dateOption%3Dlast28days&r=top-pages"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span className="gtz-analytics-card__tile-icon" aria-hidden="true">📄</span>
+              <span>
+                <strong>Top pages</strong>
+                <small>Most-visited content</small>
+              </span>
+            </a>
+            <a
+              className="gtz-analytics-card__tile"
+              href="https://analytics.google.com/analytics/web/#/p487194285/reports/explorer?params=_u..nav%3Dmaui%26_u.dateOption%3Dlast28days&r=user-technology-detail"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span className="gtz-analytics-card__tile-icon" aria-hidden="true">📱</span>
+              <span>
+                <strong>Devices</strong>
+                <small>Mobile vs desktop breakdown</small>
+              </span>
+            </a>
+          </div>
+          <p className="gtz-analytics-card__note">
+            Measurement ID: <code>G-W9LY96K1DD</code> · Stream: greentreezco
+          </p>
+        </section>
+
         <section className="gtz-admin-card">
           <div className="gtz-card-head">
             <h2>Low stock</h2>

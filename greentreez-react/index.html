@@ -718,6 +718,23 @@ line-height: 1.25; }
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
 
+    <!-- Google Analytics GA4 — storefront only, skipped on /admin -->
+    <script>
+      if (!window.location.pathname.startsWith('/admin')) {
+        (function () {
+          var s = document.createElement('script');
+          s.async = true;
+          s.src = 'https://www.googletagmanager.com/gtag/js?id=G-W9LY96K1DD';
+          document.head.appendChild(s);
+        })();
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-W9LY96K1DD');
+      }
+    </script>
+    <!-- End Google Analytics -->
+
     <!--Start of Tawk.to Script-->
     <script type="text/javascript">
       // Customer support chat, for shoppers only. It has no business opening
