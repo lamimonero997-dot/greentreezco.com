@@ -5,9 +5,10 @@
   "installCommand": "npm install",
   "cleanUrls": true,
   "trailingSlash": false,
+  "_comment_rewrites": "Catch-all SPA fallback. Vercel checks the filesystem first, so the 1,777 prerendered .html files are served directly and only unmatched paths land on index.html - which is what lets /admin/*, /checkout, /cart and /search work on a direct load, since none of them is prerendered. Do NOT narrow this with a negative-lookahead pattern: Vercel source is path-to-regexp, not raw regex, so a lookahead silently matches nothing and every one of those routes 404s. Unknown URLs therefore answer 200 with the SPA; src/components/NotFound.jsx sets noindex so they do not read as thin pages to a crawler.",
   "rewrites": [
     {
-      "source": "/((?!.*\\.[a-zA-Z0-9]+$).*)",
+      "source": "/:path*",
       "destination": "/index.html"
     }
   ],
