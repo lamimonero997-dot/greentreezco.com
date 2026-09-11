@@ -417,7 +417,7 @@ export default function ProductsHome() {
                       aria-label={`Select ${product.title}`}
                     />
                   </td>
-                  <td>
+                  <td data-label="Product">
                     <div className="gtz-admin__product">
                       <Thumb src={product.images?.[0]?.src} alt="" />
                       <div>
@@ -429,20 +429,20 @@ export default function ProductsHome() {
                       </div>
                     </div>
                   </td>
-                  <td>{product.product_type}</td>
-                  <td>
+                  <td data-label="Type">{product.product_type}</td>
+                  <td data-label="Inventory">
                     <span className={stock === 0 ? 'gtz-stock-out' : stock <= threshold ? 'gtz-stock-low' : ''}>
                       {stock} in stock
                     </span>
                     <div className="gtz-admin__handle">{product.variants?.length || 0} variants</div>
                   </td>
-                  <td>{formatMoney(productPrice(product))}</td>
-                  <td>
+                  <td data-label="Price">{formatMoney(productPrice(product))}</td>
+                  <td data-label="Status">
                     <span className={`gtz-status is-${productAvailable(product) ? product.status : 'soldout'}`}>
                       {productAvailable(product) ? product.status : 'sold out'}
                     </span>
                   </td>
-                  <td className="gtz-col-actions" onClick={(event) => event.stopPropagation()}>
+                  <td className="gtz-col-actions" data-label="Actions" onClick={(event) => event.stopPropagation()}>
                     <a
                       className="gtz-icon-btn"
                       href={`/products/${product.handle}`}

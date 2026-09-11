@@ -230,7 +230,7 @@ export default function Inventory() {
               const dirty = Boolean(drafts[row.key]);
               return (
                 <tr key={row.key} className={dirty ? 'is-dirty' : ''}>
-                  <td>
+                  <td data-label="Product">
                     <div className="gtz-admin__product">
                       <Thumb src={row.product.images?.[0]?.src} alt="" />
                       <div>
@@ -239,9 +239,9 @@ export default function Inventory() {
                       </div>
                     </div>
                   </td>
-                  <td>{row.variant.title}</td>
-                  <td className="gtz-admin__handle">{row.variant.sku || '—'}</td>
-                  <td>
+                  <td data-label="Variant">{row.variant.title}</td>
+                  <td className="gtz-admin__handle" data-label="SKU">{row.variant.sku || '—'}</td>
+                  <td data-label="Price">
                     <input
                       className="gtz-cell-input"
                       value={draft.price ?? centsToDollars(row.variant.price)}
@@ -249,7 +249,7 @@ export default function Inventory() {
                       inputMode="decimal"
                     />
                   </td>
-                  <td>
+                  <td data-label="Stock">
                     <input
                       className={`gtz-cell-input${Number(stock) === 0 ? ' is-zero' : Number(stock) <= threshold ? ' is-low' : ''}`}
                       type="number"
@@ -258,7 +258,7 @@ export default function Inventory() {
                       onChange={(event) => setDraft(row, { inventory_quantity: event.target.value })}
                     />
                   </td>
-                  <td>
+                  <td data-label="In stock">
                     <label className="gtz-stock">
                       <span className="gtz-switch">
                         <input

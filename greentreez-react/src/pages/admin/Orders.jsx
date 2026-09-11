@@ -386,21 +386,21 @@ export default function Orders() {
             ) : null}
             {filtered.map((order) => (
               <tr key={order.id} className="is-clickable" onClick={() => openOrder(order.id)}>
-                <td>
+                <td data-label="Order">
                   <strong>{order.reference}</strong>
                   <div className="gtz-admin__handle">{relativeDate(order.created_at)}</div>
                 </td>
-                <td>
+                <td data-label="Customer">
                   {order.customer_name || '—'}
                   <div className="gtz-admin__handle">{order.customer_phone}</div>
                 </td>
-                <td>
+                <td data-label="Fulfillment">
                   {order.delivery_method || '—'}
                   <div className="gtz-admin__handle">{order.item_count} items</div>
                 </td>
-                <td>{order.payment_method || '—'}</td>
-                <td>{formatMoney(orderTotal(order))}</td>
-                <td>
+                <td data-label="Payment">{order.payment_method || '—'}</td>
+                <td data-label="Total">{formatMoney(orderTotal(order))}</td>
+                <td data-label="Status">
                   <span className={`gtz-order-status is-${order.status}`}>
                     {ORDER_STATUS_LABELS[order.status] || order.status}
                   </span>

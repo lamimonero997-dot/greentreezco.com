@@ -340,6 +340,22 @@ function Layout({ onLogout, newOrders, children }) {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  // While the mobile nav is open the page behind it must not scroll, or a swipe
+  // aimed at the menu drags the dashboard around underneath it. Escape closes
+  // the drawer, which is the only way out for a keyboard user.
+  useEffect(() => {
+    if (!navOpen) return undefined;
+    const onKey = (event) => {
+      if (event.key === 'Escape') setNavOpen(false);
+    };
+    document.documentElement.classList.add('gtz-admin-nav-locked');
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.documentElement.classList.remove('gtz-admin-nav-locked');
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [navOpen]);
+
   const links = [
     { to: '/admin', end: true, icon: ICONS.dashboard, label: 'Dashboard' },
     { to: '/admin/products', icon: ICONS.products, label: 'Products' },
@@ -353,7 +369,7 @@ function Layout({ onLogout, newOrders, children }) {
 
   return (
     <div className={`gtz-admin${navOpen ? ' is-nav-open' : ''}`}>
-      <aside className="gtz-admin__side">
+      <aside className="gtz-admin__side" id="gtz-admin-nav">
         <Link className="gtz-admin__logo" to="/admin" onClick={() => setNavOpen(false)}>
           <img src={LOGO_SRC} alt="Green Treez" />
           <span>Admin</span>
@@ -397,7 +413,14 @@ function Layout({ onLogout, newOrders, children }) {
         </div>
       </aside>
 
-      <button type="button" className="gtz-admin__navtoggle" onClick={() => setNavOpen((value) => !value)}>
+      <button
+        type="button"
+        className="gtz-admin__navtoggle"
+        aria-expanded={navOpen}
+        aria-controls="gtz-admin-nav"
+        aria-label={navOpen ? 'Close menu' : 'Open menu'}
+        onClick={() => setNavOpen((value) => !value)}
+      >
         <Icon path={navOpen ? ICONS.close : ICONS.products} size={18} />
         Menu
       </button>

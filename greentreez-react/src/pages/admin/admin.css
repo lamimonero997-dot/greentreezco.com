@@ -33,6 +33,14 @@ body.gtz-admin-page .gtz-admin-login {
   --admin-side: #111318;
   --admin-danger: #b42318;
   --admin-side-w: 248px;
+  /* Horizontal padding of .gtz-admin__main. The sticky editor bar cancels it
+     with a negative margin, so both read this one value and can never drift
+     apart at a breakpoint and push the page sideways. */
+  --admin-pad: 1.75rem;
+  --admin-pad-y: 1.25rem;
+  /* Height reserved at the top of the page for the fixed nav toggle, once the
+     sidebar collapses into a drawer. Zero on desktop, where there is no toggle. */
+  --admin-top: 0rem;
   --shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
   min-height: 100vh;
   background: var(--admin-bg);
@@ -199,19 +207,23 @@ body.gtz-admin-page .gtz-admin-login {
 .gtz-admin__main {
   min-width: 0;
   margin-left: var(--admin-side-w);
-  padding: 1.25rem 1.75rem 3.5rem;
+  padding: calc(var(--admin-pad-y) + var(--admin-top)) var(--admin-pad) 3.5rem;
+  /* Landscape notches put the viewport edge under the bezel. */
+  padding-left: max(var(--admin-pad), env(safe-area-inset-left));
+  padding-right: max(var(--admin-pad), env(safe-area-inset-right));
 }
 
 .gtz-editor-bar {
   position: sticky;
-  top: 0;
+  /* Sits below the fixed nav toggle once the sidebar collapses. */
+  top: var(--admin-top);
   z-index: 12;
   display: flex;
   justify-content: space-between;
   gap: 1rem;
   align-items: center;
-  margin: -1.25rem -1.75rem 1.15rem;
-  padding: 0.95rem 1.75rem;
+  margin: calc(var(--admin-pad-y) * -1) calc(var(--admin-pad) * -1) 1.15rem;
+  padding: 0.95rem var(--admin-pad);
   background: rgba(238, 240, 243, 0.94);
   border-bottom: 1px solid var(--admin-line);
   backdrop-filter: blur(10px);
@@ -980,65 +992,10 @@ body.gtz-admin-page .gtz-admin-login {
   font-size: 0.88rem;
 }
 
-@media (max-width: 1100px) {
-  .gtz-admin__stats,
-  .gtz-admin__toolbar,
-  .gtz-admin-layout,
-  .gtz-variant-head,
-  .gtz-variant-row {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .gtz-variant-head {
-    display: none;
-  }
-}
-
-@media (max-width: 860px) {
-  .gtz-admin__side {
-    position: relative;
-    width: 100%;
-    height: auto;
-    inset: auto;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-
-  .gtz-admin__main {
-    margin-left: 0;
-  }
-
-  .gtz-editor-bar,
-  .gtz-publish {
-    position: static;
-  }
-
-  .gtz-admin__logo {
-    margin: 0 0.5rem 0 0;
-  }
-
-  .gtz-admin__nav {
-    display: flex;
-    flex: 1;
-    gap: 0.25rem;
-  }
-
-  .gtz-admin__side-foot {
-    width: 100%;
-    border-top: 0;
-    padding-top: 0;
-    grid-template-columns: 1fr auto;
-    align-items: center;
-  }
-
-  .gtz-admin__stats,
-  .gtz-admin__toolbar,
-  .gtz-admin__form-grid,
-  .gtz-image-row {
-    grid-template-columns: 1fr;
-  }
-}
+/* Responsive rules for all of the above live in the consolidated breakpoint
+   ladder at the foot of this file. They used to sit here, where an 860px block
+   turned the sidebar back into an in-flow horizontal bar while a later 900px
+   block was making it an off-canvas drawer — below 860px both applied at once. */
 
 /* ===========================================================================
    Admin: dashboard, orders, inventory, settings, bulk actions, palette
@@ -1561,45 +1518,8 @@ body.gtz-admin-page .gtz-admin-login {
 .gtz-btn svg { margin-right: 0.35rem; vertical-align: -3px; }
 .gtz-btn--ghost svg { opacity: 0.75; }
 
-@media (max-width: 1100px) {
-  .gtz-dash-grid { grid-template-columns: 1fr; }
-}
-
-@media (max-width: 900px) {
-  .gtz-admin__navtoggle {
-    position: fixed;
-    top: 0.75rem;
-    left: 0.75rem;
-    z-index: 60;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.5rem 0.8rem;
-    border: 0;
-    border-radius: 100px;
-    background: var(--admin-side);
-    color: #f8fafc;
-    font: inherit;
-    font-size: 0.8rem;
-    font-weight: 700;
-    box-shadow: var(--shadow);
-    cursor: pointer;
-  }
-  .gtz-admin__side { transform: translateX(-100%); transition: transform 0.18s ease; }
-  .gtz-admin.is-nav-open .gtz-admin__side { transform: none; }
-  .gtz-admin.is-nav-open .gtz-admin__navscrim {
-    position: fixed;
-    inset: 0;
-    z-index: 25;
-    display: block;
-    border: 0;
-    background: rgba(16, 24, 40, 0.45);
-  }
-  .gtz-admin__main { margin-left: 0; padding-top: 3.6rem; }
-  .gtz-drawer__panel { width: 100%; }
-  .gtz-bulkbar { flex-direction: column; align-items: stretch; gap: 0.6rem; }
-  .gtz-bulkbar .gtz-admin__actions { flex-wrap: wrap; }
-}
+/* The dashboard grid and the off-canvas sidebar are handled in the breakpoint
+   ladder at the foot of this file. */
 
 /* Supabase Auth login extras */
 .gtz-admin__reset {
@@ -1692,7 +1612,607 @@ body.gtz-admin-page .gtz-admin-login {
   font-size: 0.72rem;
 }
 
+/* ===========================================================================
+   Responsive ladder
+   ---------------------------------------------------------------------------
+   One place for every breakpoint in the admin, largest first, so the cascade
+   is readable and two blocks can never disagree about the same element - which
+   is what used to happen between the old 860px and 900px sidebar rules.
+
+   Steps:  1180  two-column page bodies collapse
+            980  four-up stat rows halve, toolbars go two-up
+            900  sidebar becomes an off-canvas drawer
+            760  data tables become stacked cards
+            560  phone: single column throughout
+            380  smallest supported width
+   =========================================================================== */
+
+/* --- 1180: the editor's form/publish split gets too tight to keep ---------- */
+@media (max-width: 1180px) {
+  .gtz-admin {
+    --admin-pad: 1.35rem;
+  }
+
+  .gtz-admin-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Once the publish panel is a full-width block below the form, pinning it
+     would park a tall card over the fields being filled in. */
+  .gtz-publish {
+    position: static;
+  }
+
+  .gtz-dash-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* --- 980: stat rows and filter toolbars go two-up ------------------------- */
+@media (max-width: 980px) {
+  /* Stats step 4 → 3 → 2 rather than straight to 2, so a five-tile row does not
+     leave half the width empty on a tablet. */
+  .gtz-admin__stats,
+  .gtz-admin__stats--mini {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .gtz-admin__toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* The clear-filters button was aligned to the bottom of a filter row that no
+     longer exists as a single row. */
+  .gtz-clear-filters {
+    align-self: stretch;
+  }
+
+  .gtz-variant-head {
+    display: none;
+  }
+
+  /* Without the header row to line up against, each variant becomes its own
+     small card. Children are placed explicitly because the DOM order is
+     title, price, in-stock, delete — letting them auto-flow strands the
+     delete button alone on a row of its own. */
+  .gtz-variant-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.55rem 0.5rem;
+    padding: 0.7rem;
+    border: 1px solid var(--admin-line);
+    border-radius: 11px;
+    background: #fafbfc;
+  }
+
+  .gtz-variant-row > :nth-child(1) {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .gtz-variant-row > :nth-child(2) {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .gtz-variant-row > :nth-child(3) {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+
+  .gtz-variant-row > :nth-child(4) {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: end;
+  }
+}
+
+/* --- 900: sidebar collapses into a drawer --------------------------------- */
+@media (max-width: 900px) {
+  .gtz-admin {
+    --admin-top: 3.6rem;
+  }
+
+  .gtz-admin__navtoggle {
+    position: fixed;
+    top: 0.75rem;
+    left: 0.75rem;
+    z-index: 60;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    min-height: 40px;
+    padding: 0.5rem 0.9rem;
+    border: 0;
+    border-radius: 100px;
+    background: var(--admin-side);
+    color: #f8fafc;
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+  }
+
+  .gtz-admin__side {
+    width: min(86vw, var(--admin-side-w));
+    /* The nav toggle is fixed above the drawer, so the logo has to start below
+       it rather than underneath it. */
+    padding-top: calc(var(--admin-top) + 0.4rem);
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    transform: translateX(-100%);
+    /* Hidden rather than merely shifted, so tabbing cannot land on links that
+       sit off the side of the screen. */
+    visibility: hidden;
+    transition: transform 0.18s ease, visibility 0s linear 0.18s;
+  }
+
+  .gtz-admin.is-nav-open .gtz-admin__side {
+    transform: none;
+    visibility: visible;
+    transition: transform 0.18s ease, visibility 0s;
+  }
+
+  .gtz-admin.is-nav-open .gtz-admin__navscrim {
+    position: fixed;
+    inset: 0;
+    z-index: 25;
+    display: block;
+    border: 0;
+    background: rgba(16, 24, 40, 0.45);
+  }
+
+  .gtz-admin__main {
+    margin-left: 0;
+  }
+
+  /* The toggle is fixed over the top of the page and main already pads itself
+     clear of it, so a sticky bar offset by that same amount lands one toggle
+     height too low and paints over the first card. Let it scroll with the page
+     instead — pinning it under the toggle would bury its title anyway. */
+  .gtz-editor-bar {
+    position: static;
+    margin-top: 0;
+  }
+
+  /* Full-bleed sheet; 100dvh keeps the footer clear of mobile browser chrome. */
+  .gtz-drawer__panel {
+    width: 100%;
+    height: 100dvh;
+  }
+
+  .gtz-drawer__foot {
+    padding-bottom: max(0.9rem, env(safe-area-inset-bottom));
+  }
+
+  .gtz-bulkbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.6rem;
+  }
+
+  .gtz-bulkbar .gtz-admin__actions {
+    flex-wrap: wrap;
+    justify-content: stretch;
+  }
+
+  .gtz-bulkbar .gtz-admin__actions .gtz-btn {
+    flex: 1 1 auto;
+  }
+
+  /* Below this width a seven-column table no longer fits; let it scroll
+     sideways inside its card until the card layout takes over at 760. */
+  .gtz-table-wrap table {
+    min-width: 680px;
+  }
+}
+
+/* --- 760: tables become stacked cards ------------------------------------- */
+@media (max-width: 760px) {
+  .gtz-admin {
+    --admin-pad: 1rem;
+    --admin-pad-y: 1rem;
+  }
+
+  .gtz-admin__top {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.85rem;
+  }
+
+  .gtz-admin__actions {
+    justify-content: flex-start;
+  }
+
+  /* Title and buttons cannot share a line this narrow — they were overlapping.
+     Stack them, and drop the breadcrumb, whose text the title already repeats.
+     The bar stays sticky: Publish should be reachable from anywhere in a long
+     form without scrolling back to the top. */
+  .gtz-editor-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.6rem;
+  }
+
+  .gtz-editor-bar .gtz-admin__crumb {
+    display: none;
+  }
+
+  .gtz-editor-bar h1 {
+    font-size: 1.15rem;
+  }
+
+  .gtz-editor-bar .gtz-admin__actions {
+    justify-content: stretch;
+  }
+
+  .gtz-editor-bar .gtz-admin__actions .gtz-btn {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .gtz-admin__form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* A table this wide is unreadable on a phone even with horizontal scroll, so
+     each row becomes a card and every cell carries its own heading from the
+     data-label the page renders. */
+  .gtz-table-wrap {
+    overflow: visible;
+    border: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  .gtz-table-wrap table,
+  .gtz-table-wrap tbody,
+  .gtz-table-wrap tr,
+  .gtz-table-wrap td {
+    display: block;
+    width: auto;
+    min-width: 0;
+  }
+
+  /* Headings live on each cell now; keep the real ones for screen readers. */
+  .gtz-table-wrap thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .gtz-table-wrap tr {
+    position: relative;
+    margin-bottom: 0.7rem;
+    padding: 0.85rem 0.95rem;
+    border: 1px solid var(--admin-line);
+    border-radius: 13px;
+    background: var(--admin-panel);
+    box-shadow: var(--shadow);
+  }
+
+  .gtz-admin td {
+    display: grid;
+    grid-template-columns: minmax(5.5rem, 34%) minmax(0, 1fr);
+    gap: 0.5rem 0.9rem;
+    align-items: center;
+    padding: 0.42rem 0;
+    border-bottom: 1px solid #f2f4f7;
+  }
+
+  .gtz-admin tr td:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .gtz-admin td::before {
+    content: attr(data-label);
+    grid-column: 1;
+    color: var(--admin-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* Several cells hold a value plus a line of sub-text (a handle, a variant
+     count, a phone number). Each is a separate grid item, so without this the
+     second one wraps into the label column. Pinning every child to column two
+     stacks them under the value, where they belong. Bare text nodes become
+     anonymous items and auto-place into the same column. */
+  .gtz-admin td > * {
+    grid-column: 2;
+    min-width: 0;
+  }
+
+  /* The product, order or collection cell names the row, so in a card it reads
+     as the heading across the full width rather than as one labelled field
+     among six — which also stops a long title wrapping four times inside a
+     two-thirds-width column. */
+  .gtz-admin td[data-label="Product"],
+  .gtz-admin td[data-label="Order"],
+  .gtz-admin td[data-label="Collection"] {
+    display: block;
+    padding: 0 1.8rem 0.6rem 0;
+  }
+
+  .gtz-admin td[data-label="Product"]::before,
+  .gtz-admin td[data-label="Order"]::before,
+  .gtz-admin td[data-label="Collection"]::before {
+    content: none;
+  }
+
+  /* On desktop the title is one ellipsised line capped at 34ch; in a card it
+     has to wrap, or it runs out past the rounded corner. */
+  .gtz-admin__product {
+    align-items: flex-start;
+  }
+
+  /* Inventory names the product with a link rather than a strong. */
+  .gtz-admin__product strong,
+  .gtz-admin__product a {
+    max-width: 100%;
+    overflow: visible;
+    white-space: normal;
+    line-height: 1.3;
+  }
+
+  .gtz-admin__product > div {
+    min-width: 0;
+  }
+
+  /* A status chip is sized to its text; as a grid item it would otherwise
+     stretch across the whole value column. */
+  .gtz-admin td .gtz-status,
+  .gtz-admin td .gtz-order-status,
+  .gtz-admin td .gtz-stock {
+    justify-self: start;
+  }
+
+  /* Cells with no label - the loading and empty-state rows - stay full width. */
+  .gtz-admin td:not([data-label]) {
+    display: block;
+    padding: 0.2rem 0;
+    border-bottom: 0;
+  }
+
+  /* The select checkbox rides in the corner of the card rather than taking a
+     labelled row of its own. */
+  .gtz-admin td.gtz-col-check {
+    position: absolute;
+    top: 0.7rem;
+    right: 0.7rem;
+    display: block;
+    width: auto;
+    padding: 0;
+    border-bottom: 0;
+  }
+
+  .gtz-admin td.gtz-col-check::before {
+    content: none;
+  }
+
+  /* Row actions sit as a strip at the foot of the card. */
+  .gtz-admin td.gtz-col-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.4rem;
+    width: auto;
+    padding-top: 0.7rem;
+    text-align: left;
+    white-space: normal;
+  }
+
+  .gtz-admin td.gtz-col-actions::before {
+    margin-right: auto;
+  }
+
+  /* Editing stock and prices on a phone is the point of this screen, so the
+     fields fill the value column. The type selector is needed to beat the
+     width the base `.gtz-admin input[type="number"]` rule sets. */
+  .gtz-admin td input.gtz-cell-input {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .gtz-image-row {
+    grid-template-columns: 64px minmax(0, 1fr);
+    row-gap: 0.5rem;
+  }
+
+  .gtz-image-row > :last-child {
+    grid-column: 1 / -1;
+  }
+
+  .gtz-modal {
+    padding: 0.9rem;
+  }
+
+  .gtz-modal--palette {
+    padding-top: 6vh;
+  }
+
+  .gtz-modal__panel,
+  .gtz-modal__panel--wide {
+    width: 100%;
+    max-height: 88dvh;
+    overflow: auto;
+  }
+
+  .gtz-modal__actions {
+    flex-direction: column-reverse;
+  }
+
+  .gtz-modal__actions .gtz-btn {
+    width: 100%;
+  }
+
+  .gtz-bulkbar {
+    bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* --- 560: phone ----------------------------------------------------------- */
 @media (max-width: 560px) {
-  .gtz-analytics-card__links { grid-template-columns: 1fr; }
-  .gtz-analytics-modal { padding: 1.2rem; }
+  .gtz-admin__toolbar,
+  .gtz-analytics-card__links {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* A stat is a short label over one number, so two fit side by side even on
+     the narrowest phone. Stacking them one per row pushed the table these
+     pages exist for entirely below the fold. */
+  .gtz-admin__stats,
+  .gtz-admin__stats--kpi,
+  .gtz-admin__stats--mini {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+
+  .gtz-stat {
+    padding: 0.7rem 0.75rem 0.65rem;
+  }
+
+  .gtz-stat span {
+    font-size: 0.68rem;
+    letter-spacing: 0.02em;
+  }
+
+  .gtz-admin__top h1 {
+    font-size: 1.3rem;
+  }
+
+  .gtz-stat strong {
+    font-size: 1.25rem;
+  }
+
+  .gtz-admin__actions .gtz-btn {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .gtz-gallery {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+
+  .gtz-analytics-modal {
+    padding: 1.2rem;
+  }
+
+  .gtz-drawer__head,
+  .gtz-drawer__body,
+  .gtz-drawer__foot {
+    padding-left: 0.95rem;
+    padding-right: 0.95rem;
+  }
+
+  .gtz-drawer__foot {
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+  }
+
+  .gtz-drawer__foot .gtz-btn {
+    width: 100%;
+  }
+}
+
+/* --- 380: smallest supported width ---------------------------------------- */
+@media (max-width: 380px) {
+  .gtz-admin {
+    --admin-pad: 0.75rem;
+  }
+
+  .gtz-admin td {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.15rem;
+  }
+
+  .gtz-gallery {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+}
+
+/* Scroll lock for the open mobile nav.
+   This has to sit on the root element, not on body: when html's overflow is
+   visible the body's value is what propagates to the viewport, so setting
+   overflow on body alone leaves the page scrolling behind the drawer. */
+html.gtz-admin-nav-locked,
+html.gtz-admin-nav-locked body {
+  overflow: hidden;
+}
+
+/* --- Touch input ---------------------------------------------------------- */
+@media (pointer: coarse) {
+  /* Inline links sit next to headings and in list rows, so they cannot simply
+     be given a 44px box without breaking those layouts. Padding widens the tap
+     area to a comfortable size while leaving the text where it sits. */
+  .gtz-card-head a,
+  .gtz-card-head button,
+  .gtz-recent a,
+  .gtz-linkish {
+    padding-top: 0.45rem;
+    padding-bottom: 0.45rem;
+  }
+
+  /* iOS zooms the whole page when a focused field is under 16px. */
+  .gtz-admin input,
+  .gtz-admin select,
+  .gtz-admin textarea,
+  .gtz-admin-login input {
+    font-size: 16px;
+  }
+
+  .gtz-icon-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .gtz-admin__side a,
+  .gtz-admin__side button {
+    min-height: 44px;
+  }
+
+  .gtz-col-check input,
+  .gtz-admin input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* The switch geometry is hand-built, so every part scales together: a 44px
+     track with a 22px knob leaves 18px of travel. */
+  .gtz-switch {
+    width: 44px;
+    height: 26px;
+  }
+
+  .gtz-switch span::after {
+    width: 22px;
+    height: 22px;
+  }
+
+  .gtz-switch input:checked + span::after {
+    transform: translateX(18px);
+  }
+}
+
+/* Long handles, emails and URLs must wrap rather than widen the page. */
+.gtz-admin__handle,
+.gtz-admin td,
+.gtz-drawer__body {
+  overflow-wrap: anywhere;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gtz-admin__side,
+  .gtz-drawer__panel {
+    transition: none;
+    animation: none;
+  }
 }

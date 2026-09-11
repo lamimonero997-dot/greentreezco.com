@@ -220,7 +220,7 @@ export default function CollectionsHome() {
               const count = countsByHandle.get(collection.handle) || 0;
               return (
                 <tr key={collection.id}>
-                  <td>
+                  <td data-label="Collection">
                     <div className="gtz-admin__product">
                       <Thumb src={collection.image} alt="" />
                       <div>
@@ -229,16 +229,16 @@ export default function CollectionsHome() {
                       </div>
                     </div>
                   </td>
-                  <td className="gtz-admin__handle">/{collection.handle}</td>
-                  <td>
+                  <td className="gtz-admin__handle" data-label="Handle">/{collection.handle}</td>
+                  <td data-label="Products">
                     {count ? (
                       <Link to={`/admin/products?collection=${collection.handle}`}>{count} products</Link>
                     ) : (
                       <span className="gtz-stock-out">Empty</span>
                     )}
                   </td>
-                  <td>{collection.sort_order ?? 100}</td>
-                  <td>
+                  <td data-label="Order">{collection.sort_order ?? 100}</td>
+                  <td data-label="Live">
                     <label className="gtz-stock">
                       <span className="gtz-switch">
                         <input
@@ -258,7 +258,7 @@ export default function CollectionsHome() {
                       {collection.published !== false ? 'Published' : 'Hidden'}
                     </label>
                   </td>
-                  <td className="gtz-col-actions">
+                  <td className="gtz-col-actions" data-label="Actions">
                     <a
                       className="gtz-icon-btn"
                       href={`/collections/${collection.handle}`}
