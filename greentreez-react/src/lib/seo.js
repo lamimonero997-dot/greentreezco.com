@@ -19,8 +19,8 @@
  *   });
  */
 
-const SITE_NAME   = 'Green Treez Company';
-const BASE_URL    = 'https://greentreezco.com';
+import { BASE_URL, DEFAULT_TITLE, SITE_NAME, composeTitle, truncate } from './seoText.js';
+
 const FALLBACK_IMG = `${BASE_URL}/cdn/shop/files/Green_Treez_Logo_Online_49d74201-94de-44f4-984a-9f299aedc9ad.png`;
 
 // ---------------------------------------------------------------------------
@@ -49,6 +49,23 @@ function setOrRemoveTag(selector, attr, value) {
     const el = document.head.querySelector(selector);
     if (el) el.removeAttribute(attr) || el.remove();
   }
+}
+
+/**
+ * Drops the JSON-LD the build injected.
+ *
+ * scripts/prerender.mjs writes Product and BreadcrumbList blocks tagged
+ * data-id="prerender". They exist for the raw-HTML pass; once React takes over
+ * it writes its own, and leaving both in place ships two Product blocks on the
+ * same page. Cleared on the first updateSEO() call, before any are re-added.
+ */
+let prerenderJsonLdCleared = false;
+function clearPrerenderJsonLd() {
+  if (prerenderJsonLdCleared) return;
+  prerenderJsonLdCleared = true;
+  document.head
+    .querySelectorAll('script[type="application/ld+json"][data-id="prerender"]')
+    .forEach((el) => el.remove());
 }
 
 function setJsonLd(id, data) {
@@ -143,14 +160,20 @@ export function updateSEO({
   breadcrumbs = null,
   noindex = false,
 } = {}) {
-  const resolvedTitle = title || `${SITE_NAME} | Legal THC & CBD — Nashville, TN`;
+  clearPrerenderJsonLd();
+
+  // Formatted through the same helpers the build uses, so hydration cannot
+  // replace a clean prerendered title with the raw captured one (which still
+  // carries mojibake and the old shop suffix, and runs past 60 characters).
+  const resolvedTitle = title ? composeTitle(title, DEFAULT_TITLE) : DEFAULT_TITLE;
+  const resolvedDescription = truncate(description);
   const resolvedImage = image || FALLBACK_IMG;
   const resolvedCanonical = canonical ? `${BASE_URL}${canonical}` : BASE_URL;
 
   // ── Basic ──────────────────────────────────────────────────────────────────
   document.title = resolvedTitle;
 
-  setTag('meta[name="description"]', 'content', description);
+  setTag('meta[name="description"]', 'content', resolvedDescription);
 
   if (keywords) {
     setTag('meta[name="keywords"]', 'content', keywords);
@@ -169,7 +192,7 @@ export function updateSEO({
 
   // ── Open Graph ─────────────────────────────────────────────────────────────
   setTag('meta[property="og:title"]',       'content', resolvedTitle);
-  setTag('meta[property="og:description"]', 'content', description);
+  setTag('meta[property="og:description"]', 'content', resolvedDescription);
   setTag('meta[property="og:type"]',        'content', type);
   setTag('meta[property="og:url"]',         'content', resolvedCanonical);
   setTag('meta[property="og:image"]',       'content', resolvedImage);
@@ -179,7 +202,7 @@ export function updateSEO({
   // ── Twitter Card ───────────────────────────────────────────────────────────
   setTag('meta[name="twitter:card"]',        'content', 'summary_large_image');
   setTag('meta[name="twitter:title"]',       'content', resolvedTitle);
-  setTag('meta[name="twitter:description"]', 'content', description);
+  setTag('meta[name="twitter:description"]', 'content', resolvedDescription);
   setTag('meta[name="twitter:image"]',       'content', resolvedImage);
 
   // ── JSON-LD ────────────────────────────────────────────────────────────────

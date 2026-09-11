@@ -663,11 +663,74 @@ line-height: 1.25; }
 <script id="shopify-features" type="application/json">{"accessToken":"3d9a1fb2a9d8ab30e0986e79cf2361c1","predictiveSearch":true,"shopId":62875762912,"locale":"en","domain":""}</script>
 <style>#root{display:contents}</style>
 
+    <!-- Organization + WebSite structured data (sitewide) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://greentreezco.com/#organization",
+          "name": "Green Treez Company",
+          "url": "https://greentreezco.com",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://greentreezco.com/cdn/shop/files/Green_Treez_Logo_Online_49d74201-94de-44f4-984a-9f299aedc9ad.png",
+            "width": 1200,
+            "height": 630
+          },
+          "description": "Premium hemp-derived THC and CBD products in Nashville, TN. Lab-tested flower, edibles, vapes, prerolls, and concentrates.",
+          "email": "info@greentreezco.com",
+          "telephone": "+15103942813",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "850 Hillwood Blvd Ste 7",
+            "addressLocality": "Nashville",
+            "addressRegion": "TN",
+            "postalCode": "37209",
+            "addressCountry": "US"
+          },
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "telephone": "+15103942813",
+            "email": "info@greentreezco.com",
+            "contactType": "customer service",
+            "areaServed": "US",
+            "availableLanguage": "English"
+          },
+          "sameAs": [
+            "https://www.instagram.com/greentreezco",
+            "https://www.facebook.com/greentreezco"
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://greentreezco.com/#website",
+          "url": "https://greentreezco.com",
+          "name": "Green Treez Company",
+          "description": "Legal hemp-derived THC and CBD products, shipped across Tennessee and available in Nashville.",
+          "publisher": { "@id": "https://greentreezco.com/#organization" },
+          "inLanguage": "en-US",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://greentreezco.com/search?q={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          }
+        }
+      ]
+    }
+    </script>
+
     <!-- LocalBusiness structured data -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "LocalBusiness",
+      "@id": "https://greentreezco.com/#localbusiness",
+      "parentOrganization": { "@id": "https://greentreezco.com/#organization" },
       "name": "Green Treez Company",
       "description": "Premium hemp-derived THC and CBD products in Nashville, TN. Shop flower, edibles, vapes, and more. Lab-tested. Free shipping in Tennessee.",
       "url": "https://greentreezco.com",
@@ -703,7 +766,6 @@ line-height: 1.25; }
         }
       ],
       "priceRange": "$$",
-      "servesCuisine": null,
       "sameAs": [
         "https://www.instagram.com/greentreezco",
         "https://www.facebook.com/greentreezco"
