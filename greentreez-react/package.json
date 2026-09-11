@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "node scripts/generate-sitemap.mjs && vite build && node scripts/prerender.mjs",
-    "lint": "oxlint",
+    "lint": "oxlint src scripts",
     "preview": "vite preview",
     "catalog:extract": "node scripts/extract-catalog.mjs",
     "catalog:seed": "node scripts/seed-supabase.mjs",

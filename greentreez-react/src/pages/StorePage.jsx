@@ -35,8 +35,10 @@ function setMeta(page) {
     product:     page.product || null,
     breadcrumbs: page.breadcrumbs || null,
   });
-  // Keep legacy imperative title for cloned Shopify pages that pass only title
-  if (page.title) document.title = page.title;
+  // No imperative document.title after this. updateSEO already set it, through
+  // the same formatter the prerender uses; assigning the captured title here
+  // instead put the raw scraped string back - shop suffix, mojibake and all -
+  // as the last write on every cloned page, which is the version Google indexes.
 }
 
 export default function StorePage() {
@@ -90,7 +92,10 @@ export default function StorePage() {
           enableNavbarHover();
           // The store map belongs directly above the blog roll on the home page.
           // Insert a mount node into the cloned markup and portal React into it.
-          const blog = containerRef.current.querySelector('.js-section__home-blog');
+          // stripClonedWidgets has already replaced the blog roll with
+          // .gtz-map-anchor (its articles were never captured and all 404), so
+          // the anchor is what is normally found here.
+          const blog = containerRef.current.querySelector('.gtz-map-anchor, .js-section__home-blog');
           if (blog) {
             const mount = document.createElement('div');
             mount.className = 'gtz-map-mount';

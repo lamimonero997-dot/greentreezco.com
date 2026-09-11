@@ -15,6 +15,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+// Same module the prerender uses, so the sitemap and the canonicals agree on
+// which of a duplicated pair is the primary.
+import { duplicateCanonicals } from './duplicates.mjs';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const projectDir = path.resolve(root, '..');
@@ -136,10 +139,19 @@ try {
   process.exit(1);
 }
 
-const products = (catalog.products || []).filter((p) => p.status === 'active' && p.handle);
+const allActive = (catalog.products || []).filter((p) => p.status === 'active' && p.handle);
+
+// Listings entered twice canonicalise to their primary, so only the primary
+// belongs here - a sitemap URL that points elsewhere via rel=canonical is a
+// "Duplicate, Google chose different canonical" exclusion waiting to happen.
+const canonicalOf = duplicateCanonicals(allActive);
+const products = allActive.filter((p) => !canonicalOf.has(p.handle));
+if (canonicalOf.size) {
+  console.log(`[sitemap] ${canonicalOf.size} duplicate listings excluded (canonicalised to their primary)`);
+}
 const collections = (catalog.collections || []).filter((c) => c.published !== false && c.handle);
 
-console.log(`[sitemap] ${products.length} active products, ${collections.length} collections`);
+console.log(`[sitemap] ${products.length} indexable products, ${collections.length} collections`);
 
 const entries = [
   // Static pages

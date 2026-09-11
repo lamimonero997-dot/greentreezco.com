@@ -13,10 +13,13 @@
  *   - The same <script type="module" src="/src/main.jsx"> entry point so
  *     React hydrates normally for real users
  *
- * Strategy:
- *   Products   → /products/:handle/index.html  (from catalog.json)
- *   Collections→ /collections/:handle/index.html (from catalog.json)
- *   Pages/blogs→ /pages/:slug/index.html etc.  (from pages-manifest + page JSON)
+ * Strategy (flat files, served by Vercel's cleanUrls - see write() below):
+ *   Products   → dist/products/:handle.html      (from catalog.json)
+ *   Collections→ dist/collections/:handle.html   (from catalog.json)
+ *   Pages      → dist/pages/:slug.html etc.      (from pages-manifest + page JSON)
+ *
+ * /blogs/* is not rendered: the scrape captured no article content, so every
+ * one of those routes 404s. They are excluded here and from the sitemap.
  *
  * No headless browser, no React server rendering, no extra dependencies.
  * Pure Node — reads static data files, produces static HTML files.
@@ -36,8 +39,8 @@ import {
   stripHtml,
   truncate,
 } from '../src/lib/seoText.js';
+import { duplicateCanonicals, reportDuplicates } from './duplicates.mjs';
 
-const projectDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 // scripts/ lives inside greentreez-react/scripts/, so one dirname up = greentreez-react/
 const appDir     = path.dirname(fileURLToPath(import.meta.url)).replace(/[/\\]scripts$/, '');
 const distDir    = path.join(appDir, 'dist');
@@ -378,11 +381,18 @@ const SEEN_DESCRIPTIONS = new Set();
 
 function renderProducts(catalog) {
   const active = (catalog.products || []).filter((p) => p.status === 'active' && p.handle);
+  // Handle -> the handle it should canonicalise to, for listings entered twice.
+  const canonicalOf = duplicateCanonicals(active);
   let count = 0;
   let composed = 0;
 
   for (const product of active) {
-    const canonical   = `/products/${product.handle}`;
+    const selfPath    = `/products/${product.handle}`;
+    // A duplicate listing points its canonical at the primary rather than at
+    // itself, so the two URLs stop competing and the primary collects the
+    // ranking signals from both.
+    const primary     = canonicalOf.get(product.handle);
+    const canonical   = primary ? `/products/${primary}` : selfPath;
     const title       = productTitle(product, SEEN_TITLES);
     const captured    = truncate(product.seo_description || product.excerpt || product.description);
     const description = productDescription(product, SEEN_DESCRIPTIONS);
@@ -451,7 +461,9 @@ function renderProducts(catalog) {
         ],
       });
       if (!html) { count++; continue; }
-      write(canonical, html);
+      // selfPath, never canonical: a duplicate's canonical names the primary,
+      // and writing there would overwrite the primary's own page.
+      write(selfPath, html);
       count++;
     } catch (err) {
       console.warn(`[prerender] product ${product.handle}: ${err.message}`);
@@ -463,25 +475,7 @@ function renderProducts(catalog) {
       'to replace blank or duplicated copy)'
   );
 
-  // Products that are the same listing twice. Each one is a pair of URLs
-  // competing for the same query, which is a self-inflicted duplicate-content
-  // problem no amount of metadata can fix — they want merging in the catalog,
-  // or a canonical from the copy to the original.
-  const byIdentity = new Map();
-  for (const product of active) {
-    const key = `${cleanTitle(product.title).toLowerCase()}|${product.product_type}|${product.vendor}`;
-    if (!byIdentity.has(key)) byIdentity.set(key, []);
-    byIdentity.get(key).push(product.handle);
-  }
-  const duplicates = [...byIdentity.values()].filter((handles) => handles.length > 1);
-  if (duplicates.length) {
-    console.warn(
-      `[prerender] ${duplicates.length} products are listed more than once under different handles ` +
-        '— these compete with each other in search and should be merged or canonicalised:'
-    );
-    for (const handles of duplicates.slice(0, 10)) console.warn(`[prerender]   ${handles.join('  ↔  ')}`);
-    if (duplicates.length > 10) console.warn(`[prerender]   …and ${duplicates.length - 10} more`);
-  }
+  reportDuplicates(canonicalOf, (line) => console.log(line));
 
   return count;
 }

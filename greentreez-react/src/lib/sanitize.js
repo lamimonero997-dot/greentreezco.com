@@ -823,6 +823,42 @@ function safeStep(label, fn) {
   }
 }
 
+/**
+ * Removes every link into /blogs/.
+ *
+ * The scrape captured the storefront's markup but none of its article pages:
+ * public/pages holds 53 files and not one is a blog post, so all 84 /blogs/
+ * routes in the manifest resolve to nothing and render the 404. The captured
+ * chrome still links to them from every page - the footer on all 53, plus the
+ * article grid on the home page - which points crawlers and visitors alike at
+ * dead ends sitewide.
+ *
+ * Links become plain text rather than disappearing, so the copy around them
+ * still reads correctly. The home page's article grid is removed outright,
+ * since a grid of dead article cards has nothing left to show; it leaves an
+ * anchor node behind because StorePage mounts the store map in its place.
+ */
+function stripDeadBlogLinks(root) {
+  root.querySelectorAll('a[href*="/blogs/"]').forEach((link) => {
+    const text = link.textContent?.trim();
+    if (!text) {
+      link.remove();
+      return;
+    }
+    const span = document.createElement('span');
+    span.className = 'gtz-was-link';
+    span.textContent = text;
+    link.replaceWith(span);
+  });
+
+  const blogRoll = root.querySelector('.js-section__home-blog');
+  if (blogRoll) {
+    const anchor = document.createElement('div');
+    anchor.className = 'gtz-map-anchor';
+    blogRoll.replaceWith(anchor);
+  }
+}
+
 export function stripClonedWidgets(root) {
   if (!root?.querySelectorAll) return;
   safeStep('drop widgets', () => {
@@ -834,6 +870,7 @@ export function stripClonedWidgets(root) {
     });
   });
 
+  safeStep('strip dead blog links', () => stripDeadBlogLinks(root));
   safeStep('strip location nav', () => stripLocationNav(root));
   safeStep('strip location sections', () => stripLocationSections(root));
   safeStep('rewrite links', () => rewriteContactAndOutboundLinks(root));

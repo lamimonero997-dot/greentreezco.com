@@ -42,15 +42,6 @@ function setTag(selector, attr, value) {
   el.setAttribute(attr, value || '');
 }
 
-function setOrRemoveTag(selector, attr, value) {
-  if (value) {
-    setTag(selector, attr, value);
-  } else {
-    const el = document.head.querySelector(selector);
-    if (el) el.removeAttribute(attr) || el.remove();
-  }
-}
-
 /**
  * Drops the JSON-LD the build injected.
  *

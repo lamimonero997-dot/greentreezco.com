@@ -225,6 +225,10 @@ alter table public.orders add constraint orders_sane_shape check (
   and length(shipping_address) <= 500
   and length(notes) <= 2000
   and length(reference) <= 40
+  and shipping_fee >= 0
+  and shipping_fee <= 100000
+  and total >= 0
+  and total <= 100000000
 );
 
 -- Recompute the subtotal from the catalog, ignoring whatever the browser sent.
@@ -280,6 +284,14 @@ begin
 
   new.items := repriced;
   new.subtotal := least(computed, 100000000)::int;
+
+  -- The browser sends shipping_fee and total too, and repricing the line items
+  -- while trusting those leaves the hole open: a crafted insert can still store
+  -- a $0 order, because the admin dashboard reads `total`, not `subtotal`.
+  -- Clamp the fee to the dearest option offered at checkout (overnight, $29.99)
+  -- and recompute the total from values this function controls.
+  new.shipping_fee := greatest(0, least(2999, coalesce(new.shipping_fee, 0)));
+  new.total := new.subtotal + new.shipping_fee;
   return new;
 end;
 $$;
