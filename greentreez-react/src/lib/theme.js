@@ -1,3 +1,18 @@
+/**
+ * The imported theme opens the mobile menu (and search) as a Magnific Popup
+ * drawer. Router navigation swaps the page underneath but leaves that overlay
+ * up, so tapping a drawer link - "Shop by Effect" then an effect, say - looked
+ * like nothing happened until the X was pressed. Close the drawer as part of
+ * the navigation instead. Magnific's own proxy no-ops when nothing is open.
+ */
+export function closeThemeDrawer() {
+  try {
+    window.jQuery?.magnificPopup?.close?.();
+  } catch (error) {
+    console.warn('[theme] drawer close failed', error);
+  }
+}
+
 export function reinitTheme() {
   const theme = window.theme;
   const $ = window.jQuery;

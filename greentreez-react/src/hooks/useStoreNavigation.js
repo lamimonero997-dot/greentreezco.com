@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { addFromProductForm, isCartTrigger, isProductAddForm } from '../lib/catalog/cloneProduct.js';
 import { canonicalProductPath, isLocationRoute } from '../lib/sanitize.js';
+import { closeThemeDrawer } from '../lib/theme.js';
 
 /**
  * Intercepts clicks inside imported storefront markup so plain anchors navigate
@@ -43,6 +44,7 @@ export function useStoreNavigation(enabled = true) {
       if (link.hasAttribute('download')) return;
       if (isLocationRoute(href.split('#')[0])) {
         event.preventDefault();
+        closeThemeDrawer();
         navigate('/');
         return;
       }
@@ -53,6 +55,9 @@ export function useStoreNavigation(enabled = true) {
       const [pathOnly, query] = pathAndQuery.split('?');
       const productPath = canonicalProductPath(pathOnly);
       event.preventDefault();
+      // The link may live inside the theme's mobile menu drawer, which stays
+      // open over the new page unless it is dismissed here.
+      closeThemeDrawer();
       navigate((productPath || pathOnly || '/') + (query ? `?${query}` : ''));
     };
 
@@ -75,6 +80,7 @@ export function useStoreNavigation(enabled = true) {
       if (/^\/(checkout|checkouts|account|apps|cart\/add)\b/.test(action)) return;
 
       event.preventDefault();
+      closeThemeDrawer();
       const query = new URLSearchParams(new FormData(form)).toString();
       navigate(action.split('?')[0] + (query ? `?${query}` : ''));
     };
